@@ -19,6 +19,12 @@ type QueryResult struct {
 
 var connection *sqlx.DB
 
+var (
+	NotAPointer      = errors.New("given type is not a pointer")
+	NotAStruct       = errors.New("given type is not a struct")
+	NoMatchingStruct = errors.New("no matching struct type found")
+)
+
 func OpenConnection(hostname string, port int, username string, password string, database string) {
 	connection = sqlx.MustOpen("pgx",
 		fmt.Sprintf("postgres://%s:%s@%s:%d/%s", username, password, hostname, port, database))
@@ -38,10 +44,10 @@ func PrepareStatement(query string, values ...interface{}) error {
 
 func Query(structType reflect.Type, query string, values ...interface{}) *QueryResult {
 	if structType.Kind() != reflect.Ptr {
-		return &QueryResult{nil, errors.New("given type is not a pointer")}
+		return &QueryResult{nil, NotAPointer}
 	}
 	if structType.Elem().Kind() != reflect.Struct {
-		return &QueryResult{nil, errors.New("given type is not a struct")}
+		return &QueryResult{nil, NotAStruct}
 	}
 
 	switch structType.String() {
@@ -66,7 +72,7 @@ func Query(structType reflect.Type, query string, values ...interface{}) *QueryR
 		err := connection.Select(&results, query, values...)
 		return &QueryResult{results, err}
 	default:
-		return &QueryResult{nil, errors.New("no matching struct type found")}
+		return &QueryResult{nil, NoMatchingStruct}
 	}
 }
 
