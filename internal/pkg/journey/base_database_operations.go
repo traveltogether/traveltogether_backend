@@ -52,6 +52,15 @@ func RetrieveJourneyFromDatabase(id int) (*types.Journey, error) {
 	return journeys[0], nil
 }
 
+func GetAllJourneysFromDatabase() ([]*types.Journey, error) {
+	slice, err := database.QueryAsync(database.DefaultTimeout, types.JourneyType, "SELECT * from journeys")
+	if err != nil {
+		return nil, err
+	}
+
+	return slice.([]*types.Journey), nil
+}
+
 func DeleteJourneyFromDatabase(id int) error {
 	return database.PrepareAsync(database.DefaultTimeout, "DELETE FROM journeys WHERE id = $1", id)
 }
