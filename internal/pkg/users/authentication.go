@@ -40,9 +40,9 @@ func GetUserByAuthenticationKey(key string) (*types.User, error) {
 	return users[0], err
 }
 
-func Login(mailAddress string, password string) (*types.AuthenticationInformation, error) {
+func Login(nameOrMail string, password string) (*types.AuthenticationInformation, error) {
 	slice, err := database.QueryAsync(database.DefaultTimeout, types.PwHashInformationType,
-		"SELECT password FROM users WHERE mail=$1", mailAddress)
+		"SELECT password FROM users WHERE mail = $1 OR name = $2", nameOrMail, nameOrMail)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,8 @@ func Login(mailAddress string, password string) (*types.AuthenticationInformatio
 	}
 
 	slice, err = database.QueryAsync(database.DefaultTimeout, types.AuthInformationType,
-		"UPDATE users SET session_key=$1 WHERE mail=$2 RETURNING id, name, session_key;", sessionKey, mailAddress)
+		"UPDATE users SET session_key = $1 WHERE mail = $2 OR name = $3 RETURNING id, name, session_key",
+		sessionKey, nameOrMail, nameOrMail)
 	if err != nil {
 		return nil, err
 	}
