@@ -2,7 +2,10 @@ package main
 
 import (
 	"flag"
+	"github.com/sirupsen/logrus"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/database"
+	"github.com/traveltogether/traveltogether_backend/internal/pkg/general"
+	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver"
 )
 
 func main() {
@@ -22,11 +25,41 @@ func main() {
 
 	flag.Parse()
 
-	database.OpenConnection(*databaseHostname, *databasePort, *databaseUser, *databasePassword, *databaseName)
+	if *debug {
+		general.Log.SetLevel(logrus.DebugLevel)
+	}
+
+	database.OpenConnection(*databaseHostname, *databasePort, *databaseUser, *databasePassword, *databaseName,
+		*databaseSSLMode)
 	database.MustExec("CREATE TABLE IF NOT EXISTS users(" +
 		"id BIGSERIAL PRIMARY KEY," +
 		"name TEXT NOT NULL," +
 		"mail TEXT NOT NULL," +
 		"password TEXT NOT NULL," +
 		"session_key VARCHAR(36))")
+	database.MustExec("CREATE TABLE IF NOT EXISTS journeys(" +
+		"id BIGSERIAL PRIMARY KEY," +
+		"user_id INTEGER NOT NULL," +
+		"request BOOLEAN NOT NULL," +
+		"offer BOOLEAN NOT NULL," +
+		"start_long_lat VARCHAR(64) NOT NULL," +
+		"end_long_lat VARCHAR(64) NOT NULL," +
+		"approximate_start_long_lat VARCHAR(64) NOT NULL," +
+		"approximate_end_long_lat VARCHAR(64) NOT NULL," +
+		"start_address TEXT NOT NULL," +
+		"end_address TEXT NOT NULL," +
+		"approximate_start_address TEXT NOT NULL," +
+		"approximate_end_address TEXT NOT NULL," +
+		"time_value BIGINT NOT NULL," +
+		"time_is_departure BOOLEAN NOT NULL," +
+		"time_is_arrival BOOLEAN NOT NULL," +
+		"open_for_requests BOOLEAN NOT NULL," +
+		"pending_user_ids INTEGER[]," +
+		"accepted_user_ids INTEGER[]," +
+		"declined_user_ids INTEGER[]," +
+		"cancelled_by_host BOOLEAN NOT NULL," +
+		"cancelled_by_host_reason TEXT," +
+		"cancelled_by_attendee_ids INTEGER[])")
+
+	webserver.Run(*webserverHostname, *webserverPort)
 }
