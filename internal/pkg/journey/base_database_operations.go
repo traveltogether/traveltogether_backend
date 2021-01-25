@@ -31,7 +31,8 @@ func InsertJourneyToDatabase(journey *types.Journey) error {
 		return err
 	}
 
-	*journey.Id = id.Id
+	newId := &id.Id
+	journey.Id = newId
 
 	return nil
 }
@@ -52,5 +53,5 @@ func RetrieveJourneyFromDatabase(id int) (*types.Journey, error) {
 }
 
 func DeleteJourneyFromDatabase(id int) error {
-	return database.PrepareAsync(database.DefaultTimeout, "DELETE FROM journey WHERE id = $1", id)
+	return database.PrepareAsync(database.DefaultTimeout, "DELETE FROM journeys WHERE id = $1", id)
 }

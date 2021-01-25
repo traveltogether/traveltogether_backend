@@ -25,7 +25,7 @@ func CancelJourney(journey *types.Journey, reason string) error {
 	}
 
 	journey.CancelledByHost = true
-	*journey.CancelledByHostReason = reason
+	journey.CancelledByHostReason = &reason
 
 	// TODO notify user via chat about cancelled journey
 

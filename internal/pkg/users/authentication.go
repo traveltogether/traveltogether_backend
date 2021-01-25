@@ -26,7 +26,7 @@ func compareHashAndPassword(hash string, password string) error {
 
 func GetUserByAuthenticationKey(key string) (*types.User, error) {
 	slice, err := database.QueryAsync(database.DefaultTimeout, types.UserType,
-		"SELECT id, name, mail FROM users WHERE session_key=$1;", key)
+		"SELECT id, name, mail FROM users WHERE session_key = $1", key)
 
 	if err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func Register(name string, mailAddress string, password string) (*types.Authenti
 	}
 
 	slice, err = database.QueryAsync(database.DefaultTimeout, types.AuthInformationType,
-		"INSERT INTO users(name, mail, password, session_key) VALUES($1, $2, $3, $4) RETURNING id, name, session_key;",
+		"INSERT INTO users(name, mail, password, session_key) VALUES($1, $2, $3, $4) RETURNING id, name, session_key",
 		name, mailAddress, passwordHash, sessionKey)
 	if err != nil {
 		return nil, err
@@ -119,7 +119,7 @@ func getNewSessionKey() (string, error) {
 		key = uuid.New().String()
 
 		slice, err := database.QueryAsync(database.DefaultTimeout, types.IdInformationType,
-			"SELECT id FROM users WHERE session_key=$1;", key)
+			"SELECT id FROM users WHERE session_key = $1", key)
 		if err != nil {
 			break
 		}
