@@ -13,6 +13,12 @@ func main() {
 		"password of the PostgreSQL instance password")
 	databaseName := flag.String("db-name", "traveltogether",
 		"name of the PostgreSQL instance database")
+	databaseSSLMode := flag.String("db-ssl", "disable",
+		"enable/disable SSL connection to the PostgreSQL instance "+
+			"(see PostgreSQL documentation of specific values to enable)")
+	webserverHostname := flag.String("web-hostname", "127.0.0.1", "ip to bind the webserver to")
+	webserverPort := flag.Int("web-port", 4269, "port to bind the webserver to")
+	debug := flag.Bool("debug", false, "enable/disable debug logging")
 
 	flag.Parse()
 

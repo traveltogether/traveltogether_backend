@@ -3,8 +3,8 @@ package database
 import (
 	"errors"
 	"fmt"
-	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/types"
 	"reflect"
 	"time"
@@ -25,9 +25,9 @@ var (
 	NoMatchingStruct = errors.New("no matching struct type found")
 )
 
-func OpenConnection(hostname string, port int, username string, password string, database string) {
-	connection = sqlx.MustOpen("pgx",
-		fmt.Sprintf("postgres://%s:%s@%s:%d/%s", username, password, hostname, port, database))
+func OpenConnection(hostname string, port int, username string, password string, database string, sslMode string) {
+	connection = sqlx.MustOpen("postgres",
+		fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=%s", username, password, hostname, port, database, sslMode))
 }
 
 func PrepareStatement(query string, values ...interface{}) error {

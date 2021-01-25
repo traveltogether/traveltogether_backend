@@ -3,9 +3,11 @@ package journey
 import (
 	"errors"
 	"github.com/forestgiant/sliceutil"
+	"github.com/lib/pq"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/database"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/general"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/types"
+	"time"
 )
 
 var (
@@ -15,9 +17,16 @@ var (
 	UserHasNotRequestedJoin    = errors.New("user has not requested to join")
 	UserHasNotBeenDeclined     = errors.New("user has not been declined")
 	UserHasNotBeenAccepted     = errors.New("user has not been accepted")
+	AlreadyTookPlace           = errors.New("journey already took place")
+	RequestingOwnJourney       = errors.New("requesting own journey")
+	UserHasAlreadyBeenAccepted = errors.New("user has already been accepted")
 )
 
-func RequestToJoinJourney(journey *types.Journey, userId int) error {
+func RequestToJoinJourney(journey *types.Journey, userId int64) error {
+	if int64(journey.UserId) == userId {
+		return RequestingOwnJourney
+	}
+
 	if journey.CancelledByHost {
 		return HasBeenCancelled
 	}
@@ -26,10 +35,8 @@ func RequestToJoinJourney(journey *types.Journey, userId int) error {
 		return RequestsNotOpen
 	}
 
-	if journey.DeclinedUserIds != nil {
-		if sliceutil.Contains(*journey.DeclinedUserIds, userId) {
-			return UserHasAlreadyBeenDeclined
-		}
+	if time.Unix(0, int64(journey.Time)*int64(time.Millisecond)).Before(time.Now()) {
+		return AlreadyTookPlace
 	}
 
 	if journey.PendingUserIds != nil {
@@ -37,12 +44,25 @@ func RequestToJoinJourney(journey *types.Journey, userId int) error {
 			return nil
 		}
 	} else {
-		*journey.PendingUserIds = []int{}
+		journey.PendingUserIds = &pq.Int64Array{}
+	}
+
+	if journey.DeclinedUserIds != nil {
+		if sliceutil.Contains(*journey.DeclinedUserIds, userId) {
+			return UserHasAlreadyBeenDeclined
+		}
+	}
+
+	if journey.AcceptedUserIds != nil {
+		if sliceutil.Contains(*journey.AcceptedUserIds, userId) {
+			return UserHasAlreadyBeenAccepted
+		}
 	}
 
 	if err := database.PrepareAsync(database.DefaultTimeout,
 		"UPDATE journeys SET pending_user_ids = array_append(pending_user_ids, $1) "+
-			"WHERE id = $2 AND NOT (pending_user_ids @> ARRAY[$3])", userId, *journey.Id, userId); err != nil {
+			"WHERE id = $2 AND (pending_user_ids IS NULL OR NOT $3 = ANY(pending_user_ids))",
+		userId, *journey.Id, userId); err != nil {
 		return err
 	}
 
@@ -50,16 +70,35 @@ func RequestToJoinJourney(journey *types.Journey, userId int) error {
 	return nil
 }
 
-func AcceptUserToJoinJourney(journey *types.Journey, userId int) error {
+func CancelRequestToJoinJourney(journey *types.Journey, userId int64) error {
+	if int64(journey.UserId) == userId {
+		return RequestingOwnJourney
+	}
+
+	if journey.PendingUserIds == nil {
+		return UserHasNotBeenAccepted
+	}
+	if !sliceutil.Contains(*journey.PendingUserIds, userId) {
+		return UserHasNotBeenAccepted
+	}
+
+	if err := database.PrepareAsync(database.DefaultTimeout, "UPDATE journeys SET pending_user_ids = "+
+		"array_remove(pending_user_ids, $1) WHERE id = $2 AND $3=ANY(pending_user_ids)",
+		userId, *journey.Id, userId); err != nil {
+		return err
+	}
+
+	*journey.PendingUserIds = general.RemoveIntFromSlice(*journey.PendingUserIds, userId)
+	return nil
+}
+
+func AcceptUserToJoinJourney(journey *types.Journey, userId int64) error {
 	if journey.CancelledByHost {
 		return HasBeenCancelled
 	}
 
-	if journey.PendingUserIds == nil {
-		return UserHasNotRequestedJoin
-	}
-	if !sliceutil.Compare(*journey.PendingUserIds, userId) {
-		return UserHasNotRequestedJoin
+	if time.Unix(0, int64(journey.Time)*int64(time.Millisecond)).Before(time.Now()) {
+		return AlreadyTookPlace
 	}
 
 	if journey.AcceptedUserIds != nil {
@@ -67,28 +106,15 @@ func AcceptUserToJoinJourney(journey *types.Journey, userId int) error {
 			return nil
 		}
 	} else {
-		*journey.AcceptedUserIds = []int{}
+		journey.AcceptedUserIds = &pq.Int64Array{}
 	}
 
-	if err := database.PrepareAsync(database.DefaultTimeout, "UPDATE journeys SET accepted_user_ids = "+
-		"array_append(accepted_user_ids, $1) WHERE id = $2 AND NOT (accepted_user_ids @> ARRAY[$3])",
-		userId, *journey.Id, userId); err != nil {
-		return err
+	if journey.DeclinedUserIds != nil {
+		if sliceutil.Contains(*journey.DeclinedUserIds, userId) {
+			return UserHasAlreadyBeenDeclined
+		}
 	}
 
-	*journey.AcceptedUserIds = append(*journey.AcceptedUserIds, userId)
-
-	if err := database.PrepareAsync(database.DefaultTimeout, "UPDATE journeys SET pending_user_ids = "+
-		"array_remove(pending_user_ids, $1) WHERE id = $2 AND (pending_user_ids @> ARRAY[$3])",
-		userId, *journey.Id, userId); err != nil {
-		return err
-	}
-
-	*journey.PendingUserIds = general.RemoveIntFromSlice(*journey.PendingUserIds, userId)
-	return nil
-}
-
-func DeclineUserToJoinJourney(journey *types.Journey, userId int) error {
 	if journey.PendingUserIds == nil {
 		return UserHasNotRequestedJoin
 	}
@@ -96,24 +122,17 @@ func DeclineUserToJoinJourney(journey *types.Journey, userId int) error {
 		return UserHasNotRequestedJoin
 	}
 
-	if journey.DeclinedUserIds != nil {
-		if sliceutil.Contains(*journey.DeclinedUserIds, userId) {
-			return nil
-		}
-	} else {
-		*journey.DeclinedUserIds = []int{}
-	}
-
-	if err := database.PrepareAsync(database.DefaultTimeout, "UPDATE journeys SET declined_user_ids = "+
-		"array_append(declined_user_ids, $1) WHERE id = $2 AND NOT (declined_user_ids @> ARRAY[$3])",
+	if err := database.PrepareAsync(database.DefaultTimeout, "UPDATE journeys SET accepted_user_ids = "+
+		"array_append(accepted_user_ids, $1) WHERE id = $2 "+
+		"AND (accepted_user_ids IS NULL OR NOT $3 = ANY(accepted_user_ids))",
 		userId, *journey.Id, userId); err != nil {
 		return err
 	}
 
-	*journey.DeclinedUserIds = append(*journey.DeclinedUserIds, userId)
+	*journey.AcceptedUserIds = append(*journey.AcceptedUserIds, userId)
 
 	if err := database.PrepareAsync(database.DefaultTimeout, "UPDATE journeys SET pending_user_ids = "+
-		"array_remove(pending_user_ids, $1) WHERE id = $2 AND (pending_user_ids @> ARRAY[$3])",
+		"array_remove(pending_user_ids, $1) WHERE id = $2 AND $3 = ANY(pending_user_ids)",
 		userId, *journey.Id, userId); err != nil {
 		return err
 	}
@@ -122,7 +141,82 @@ func DeclineUserToJoinJourney(journey *types.Journey, userId int) error {
 	return nil
 }
 
-func ReverseDeclineUserToJoinJourney(journey *types.Journey, userId int) error {
+func CancelAcceptToJoinJourney(journey *types.Journey, userId int64) error {
+	if journey.AcceptedUserIds == nil {
+		return UserHasNotBeenAccepted
+	}
+	if !sliceutil.Contains(*journey.AcceptedUserIds, userId) {
+		return UserHasNotBeenAccepted
+	}
+
+	if err := database.PrepareAsync(database.DefaultTimeout, "UPDATE journeys SET accepted_user_ids = "+
+		"array_remove(accepted_user_ids, $1) WHERE id = $2 AND $3 = ANY(accepted_user_ids)",
+		userId, *journey.Id, userId); err != nil {
+		return err
+	}
+
+	*journey.PendingUserIds = general.RemoveIntFromSlice(*journey.PendingUserIds, userId)
+	return nil
+}
+
+func DeclineUserToJoinJourney(journey *types.Journey, userId int64) error {
+	if journey.CancelledByHost {
+		return HasBeenCancelled
+	}
+
+	if time.Unix(0, int64(journey.Time)*int64(time.Millisecond)).Before(time.Now()) {
+		return AlreadyTookPlace
+	}
+
+	if journey.PendingUserIds == nil {
+		return UserHasNotRequestedJoin
+	}
+	if !sliceutil.Contains(*journey.PendingUserIds, userId) {
+		return UserHasNotRequestedJoin
+	}
+
+	if journey.AcceptedUserIds != nil {
+		if sliceutil.Contains(*journey.AcceptedUserIds, userId) {
+			return UserHasAlreadyBeenAccepted
+		}
+	}
+
+	if journey.DeclinedUserIds != nil {
+		if sliceutil.Contains(*journey.DeclinedUserIds, userId) {
+			return nil
+		}
+	} else {
+		journey.DeclinedUserIds = &pq.Int64Array{}
+	}
+
+	if err := database.PrepareAsync(database.DefaultTimeout, "UPDATE journeys SET declined_user_ids = "+
+		"array_append(declined_user_ids, $1) WHERE id = $2 "+
+		"AND (declined_user_ids IS NULL OR NOT $3 = ANY(declined_user_ids))",
+		userId, *journey.Id, userId); err != nil {
+		return err
+	}
+
+	*journey.DeclinedUserIds = append(*journey.DeclinedUserIds, userId)
+
+	if err := database.PrepareAsync(database.DefaultTimeout, "UPDATE journeys SET pending_user_ids = "+
+		"array_remove(pending_user_ids, $1) WHERE id = $2 AND $3 = ANY(pending_user_ids)",
+		userId, *journey.Id, userId); err != nil {
+		return err
+	}
+
+	*journey.PendingUserIds = general.RemoveIntFromSlice(*journey.PendingUserIds, userId)
+	return nil
+}
+
+func ReverseDeclineUserToJoinJourney(journey *types.Journey, userId int64) error {
+	if journey.CancelledByHost {
+		return HasBeenCancelled
+	}
+
+	if time.Unix(0, int64(journey.Time)*int64(time.Millisecond)).Before(time.Now()) {
+		return AlreadyTookPlace
+	}
+
 	if journey.DeclinedUserIds == nil {
 		return UserHasNotBeenDeclined
 	}
@@ -131,7 +225,7 @@ func ReverseDeclineUserToJoinJourney(journey *types.Journey, userId int) error {
 	}
 
 	if err := database.PrepareAsync(database.DefaultTimeout, "UPDATE journeys SET declined_user_ids = "+
-		"array_remove(declined_user_ids, $1) WHERE id = $2 AND (declined_user_ids @> ARRAY[$3])",
+		"array_remove(declined_user_ids, $1) WHERE id = $2 AND $3 = ANY(declined_user_ids)",
 		userId, *journey.Id, userId); err != nil {
 		return err
 	}
@@ -140,7 +234,11 @@ func ReverseDeclineUserToJoinJourney(journey *types.Journey, userId int) error {
 	return nil
 }
 
-func CancelAttendanceAtJourney(journey *types.Journey, userId int) error {
+func CancelAttendanceAtJourney(journey *types.Journey, userId int64) error {
+	if int64(journey.UserId) == userId {
+		return RequestingOwnJourney
+	}
+
 	if journey.AcceptedUserIds == nil {
 		return UserHasNotBeenAccepted
 	}
@@ -149,11 +247,12 @@ func CancelAttendanceAtJourney(journey *types.Journey, userId int) error {
 	}
 
 	if journey.CancelledByAttendeeIds == nil {
-		*journey.CancelledByAttendeeIds = []int{}
+		journey.CancelledByAttendeeIds = &pq.Int64Array{}
 	}
 
 	if err := database.PrepareAsync(database.DefaultTimeout, "UPDATE journeys SET cancelled_by_attendee_ids = "+
-		"array_append(cancelled_by_attendee_ids, $1) WHERE id = $2 AND (cancelled_by_attendee_ids @> ARRAY[$3])",
+		"array_append(cancelled_by_attendee_ids, $1) WHERE id = $2 "+
+		"AND (cancelled_by_attendee_ids IS NULL OR NOT $3=ANY(cancelled_by_attendee_ids))",
 		userId, *journey.Id, userId); err != nil {
 		return err
 	}
@@ -163,7 +262,7 @@ func CancelAttendanceAtJourney(journey *types.Journey, userId int) error {
 	*journey.CancelledByAttendeeIds = append(*journey.CancelledByAttendeeIds, userId)
 
 	if err := database.PrepareAsync(database.DefaultTimeout, "UPDATE journeys SET accepted_user_ids = "+
-		"array_remove(accepted_user_ids, $1) WHERE id = $2 AND (accepted_user_ids @> ARRAY[$3])",
+		"array_remove(accepted_user_ids, $1) WHERE id = $2 AND $3 = ANY(accepted_user_ids)",
 		userId, *journey.Id, userId); err != nil {
 		return err
 	}
