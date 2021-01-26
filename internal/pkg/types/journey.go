@@ -14,10 +14,10 @@ type Journey struct {
 	UserId                        int            `json:"user_id" db:"user_id"`
 	Request                       bool           `json:"request" db:"request"`
 	Offer                         bool           `json:"offer" db:"offer"`
-	StartLongLat                  *string        `json:"start_long_lat,omitempty" db:"start_long_lat"`
-	EndLongLat                    *string        `json:"end_long_lat,omitempty" db:"end_long_lat"`
-	ApproximateStartLongLat       *string        `json:"approximate_start_long_lat,omitempty" db:"approximate_start_long_lat"`
-	ApproximateEndLongLat         *string        `json:"approximate_end_long_lat,omitempty" db:"approximate_end_long_lat"`
+	StartLatLong                  *string        `json:"start_lat_long,omitempty" db:"start_lat_long"`
+	EndLatLong                    *string        `json:"end_lat_long,omitempty" db:"end_lat_long"`
+	ApproximateStartLatLong       *string        `json:"approximate_start_lat_long,omitempty" db:"approximate_start_lat_long"`
+	ApproximateEndLatLong         *string        `json:"approximate_end_lat_long,omitempty" db:"approximate_end_lat_long"`
 	StartAddressString            *string        `json:"start_address,omitempty" db:"start_address"`
 	EndAddressString              *string        `json:"end_address,omitempty" db:"end_address"`
 	ApproximateStartAddressString *string        `json:"approximate_start_address,omitempty" db:"approximate_start_address"`

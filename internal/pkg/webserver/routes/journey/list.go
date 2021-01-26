@@ -6,7 +6,7 @@ import (
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/journey"
 	generalTypes "github.com/traveltogether/traveltogether_backend/internal/pkg/types"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/errors"
-	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/routes/journey/helper"
+	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/helper"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/types"
 	"net/http"
 )

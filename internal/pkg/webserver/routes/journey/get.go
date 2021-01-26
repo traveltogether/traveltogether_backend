@@ -5,8 +5,7 @@ import (
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/general"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/journey"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/types"
-	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/errors"
-	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/routes/journey/helper"
+	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/helper"
 	"net/http"
 	"strconv"
 )

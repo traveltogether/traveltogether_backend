@@ -15,13 +15,13 @@ func InsertJourneyToDatabase(journey *types.Journey) error {
 
 	err := database.NamedQueryAsync(database.DefaultTimeout, id, ""+
 		"INSERT INTO "+
-		"journeys(user_id, request, offer, start_long_lat, end_long_lat, approximate_start_long_lat,"+
-		"approximate_end_long_lat, start_address, end_address, approximate_start_address, approximate_end_address,"+
+		"journeys(user_id, request, offer, start_lat_long, end_lat_long, approximate_start_lat_long,"+
+		"approximate_end_lat_long, start_address, end_address, approximate_start_address, approximate_end_address,"+
 		"time_value, time_is_departure, time_is_arrival, open_for_requests, pending_user_ids, accepted_user_ids,"+
 		"declined_user_ids, cancelled_by_host, cancelled_by_attendee_ids) "+
 		"VALUES("+
-		":user_id, :request, :offer, :start_long_lat, :end_long_lat, :approximate_start_long_lat,"+
-		":approximate_end_long_lat, :start_address, :end_address, :approximate_start_address,"+
+		":user_id, :request, :offer, :start_lat_long, :end_lat_long, :approximate_start_lat_long,"+
+		":approximate_end_lat_long, :start_address, :end_address, :approximate_start_address,"+
 		":approximate_end_address, :time_value, :time_is_departure, :time_is_arrival, :open_for_requests,"+
 		":pending_user_ids, :accepted_user_ids, :declined_user_ids, :cancelled_by_host, :cancelled_by_attendee_ids) "+
 		"RETURNING id",

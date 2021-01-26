@@ -15,9 +15,9 @@ func ModifyJourneyFields(journey *types.Journey, user *types.User) {
 				journey.AcceptedUserIds = nil
 				journey.DeclinedUserIds = nil
 				journey.StartAddressString = nil
-				journey.StartLongLat = nil
+				journey.StartLatLong = nil
 				journey.EndAddressString = nil
-				journey.EndLongLat = nil
+				journey.EndLatLong = nil
 				journey.CancelledByAttendeeIds = nil
 				return
 			}
@@ -41,9 +41,9 @@ func ModifyJourneyFields(journey *types.Journey, user *types.User) {
 				journey.PendingUserIds = nil
 				journey.AcceptedUserIds = nil
 				journey.StartAddressString = nil
-				journey.StartLongLat = nil
+				journey.StartLatLong = nil
 				journey.EndAddressString = nil
-				journey.EndLongLat = nil
+				journey.EndLatLong = nil
 				journey.CancelledByAttendeeIds = nil
 				return
 			}
@@ -54,9 +54,9 @@ func ModifyJourneyFields(journey *types.Journey, user *types.User) {
 				journey.CancelledByAttendeeIds = &pq.Int64Array{int64(user.Id)}
 
 				journey.StartAddressString = nil
-				journey.StartLongLat = nil
+				journey.StartLatLong = nil
 				journey.EndAddressString = nil
-				journey.EndLongLat = nil
+				journey.EndLatLong = nil
 				return
 			}
 		}
@@ -66,8 +66,8 @@ func ModifyJourneyFields(journey *types.Journey, user *types.User) {
 		journey.AcceptedUserIds = nil
 		journey.DeclinedUserIds = nil
 		journey.StartAddressString = nil
-		journey.StartLongLat = nil
+		journey.StartLatLong = nil
 		journey.EndAddressString = nil
-		journey.EndLongLat = nil
+		journey.EndLatLong = nil
 	}
 }

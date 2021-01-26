@@ -27,7 +27,7 @@ func CreateJourney(httpBody []byte, user *types.User) (*types.Journey, error) {
 		return nil, InvalidDetails
 	}
 
-	if journey.StartLongLat == nil || journey.EndLongLat == nil {
+	if journey.StartLatLong == nil || journey.EndLatLong == nil {
 		return nil, InvalidDetails
 	}
 
@@ -39,35 +39,35 @@ func CreateJourney(httpBody []byte, user *types.User) (*types.Journey, error) {
 		return nil, InvalidDetails
 	}
 
-	startLongLat := strings.Split(*journey.StartLongLat, ";")
-	if len(startLongLat) != 2 {
+	startLatLong := strings.Split(*journey.StartLatLong, ";")
+	if len(startLatLong) != 2 {
 		return nil, InvalidDetails
 	}
 
-	startLong, err := strconv.ParseFloat(startLongLat[0], 32)
+	startLat, err := strconv.ParseFloat(startLatLong[0], 32)
 	if err != nil {
 		return nil, InvalidDetails
 	}
-	startLat, err := strconv.ParseFloat(startLongLat[1], 32)
-	if err != nil {
-		return nil, InvalidDetails
-	}
-
-	endLongLat := strings.Split(*journey.EndLongLat, ";")
-	if len(endLongLat) != 2 {
-		return nil, InvalidDetails
-	}
-
-	endLong, err := strconv.ParseFloat(endLongLat[0], 32)
-	if err != nil {
-		return nil, InvalidDetails
-	}
-	endLat, err := strconv.ParseFloat(endLongLat[1], 32)
+	startLong, err := strconv.ParseFloat(startLatLong[1], 32)
 	if err != nil {
 		return nil, InvalidDetails
 	}
 
-	startAddress, err := nominatim.GetAddress(float32(startLong), float32(startLat))
+	endLatLong := strings.Split(*journey.EndLatLong, ";")
+	if len(endLatLong) != 2 {
+		return nil, InvalidDetails
+	}
+
+	endLat, err := strconv.ParseFloat(endLatLong[0], 32)
+	if err != nil {
+		return nil, InvalidDetails
+	}
+	endLong, err := strconv.ParseFloat(endLatLong[1], 32)
+	if err != nil {
+		return nil, InvalidDetails
+	}
+
+	startAddress, err := nominatim.GetAddress(float32(startLat), float32(startLong))
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func CreateJourney(httpBody []byte, user *types.User) (*types.Journey, error) {
 		startAddress.Postcode, startAddress.City)
 	journey.StartAddressString = &startAddressString
 
-	endAddress, err := nominatim.GetAddress(float32(endLong), float32(endLat))
+	endAddress, err := nominatim.GetAddress(float32(endLat), float32(endLong))
 	if err != nil {
 		return nil, err
 	}
@@ -83,18 +83,18 @@ func CreateJourney(httpBody []byte, user *types.User) (*types.Journey, error) {
 		endAddress.Postcode, endAddress.City)
 	journey.EndAddressString = &endAddressString
 
-	approximateStartLong := float32(startLong) + 0.001*float32(rand.Intn(3)+1)
 	approximateStartLat := float32(startLat) + 0.001*float32(rand.Intn(3)+1)
-	approximateEndLong := float32(endLong) + 0.001*float32(rand.Intn(3)+1)
+	approximateStartLong := float32(startLong) + 0.001*float32(rand.Intn(3)+1)
 	approximateEndLat := float32(endLat) + 0.001*float32(rand.Intn(3)+1)
+	approximateEndLong := float32(endLong) + 0.001*float32(rand.Intn(3)+1)
 
-	approximateStartLongLat := fmt.Sprintf("%.8g;%.8g", approximateStartLong, approximateStartLat)
-	approximateEndLongLat := fmt.Sprintf("%.8g;%.8g", approximateEndLong, approximateEndLat)
+	approximateStartLatLong := fmt.Sprintf("%.8g;%.8g", approximateStartLat, approximateStartLong)
+	approximateEndLatLong := fmt.Sprintf("%.8g;%.8g", approximateEndLat, approximateEndLong)
 
-	journey.ApproximateStartLongLat = &approximateStartLongLat
-	journey.ApproximateEndLongLat = &approximateEndLongLat
+	journey.ApproximateStartLatLong = &approximateStartLatLong
+	journey.ApproximateEndLatLong = &approximateEndLatLong
 
-	approximateStartAddress, err := nominatim.GetAddress(approximateStartLong, approximateStartLat)
+	approximateStartAddress, err := nominatim.GetAddress(approximateStartLat, approximateStartLong)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func CreateJourney(httpBody []byte, user *types.User) (*types.Journey, error) {
 		approximateStartAddress.HouseNumber, approximateStartAddress.Postcode, approximateStartAddress.City)
 	journey.ApproximateStartAddressString = &approximateStartAddressString
 
-	approximateEndAddress, err := nominatim.GetAddress(approximateEndLong, approximateEndLat)
+	approximateEndAddress, err := nominatim.GetAddress(approximateEndLat, approximateEndLong)
 	if err != nil {
 		return nil, err
 	}

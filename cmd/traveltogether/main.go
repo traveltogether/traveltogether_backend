@@ -42,10 +42,10 @@ func main() {
 		"user_id INTEGER NOT NULL," +
 		"request BOOLEAN NOT NULL," +
 		"offer BOOLEAN NOT NULL," +
-		"start_long_lat VARCHAR(64) NOT NULL," +
-		"end_long_lat VARCHAR(64) NOT NULL," +
-		"approximate_start_long_lat VARCHAR(64) NOT NULL," +
-		"approximate_end_long_lat VARCHAR(64) NOT NULL," +
+		"start_lat_long VARCHAR(64) NOT NULL," +
+		"end_lat_long VARCHAR(64) NOT NULL," +
+		"approximate_start_lat_long VARCHAR(64) NOT NULL," +
+		"approximate_end_lat_long VARCHAR(64) NOT NULL," +
 		"start_address TEXT NOT NULL," +
 		"end_address TEXT NOT NULL," +
 		"approximate_start_address TEXT NOT NULL," +
