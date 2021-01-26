@@ -6,50 +6,26 @@ import (
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/journey"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/types"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/errors"
+	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/helper"
 	"net/http"
-	"strconv"
 )
 
 func AcceptUserToAttend() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		idAsString := ctx.Param("id")
-		userIdAsString := ctx.Param("userId")
-
-		if idAsString == "" || userIdAsString == "" {
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, errors.InvalidRequest)
-			return
-		}
-
-		id, err := strconv.Atoi(idAsString)
-		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, errors.InvalidRequest)
-			return
-		}
-
-		userToAcceptId, err := strconv.Atoi(userIdAsString)
-		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, errors.InvalidRequest)
-			return
-		}
-
-		requestedJourney, err := journey.RetrieveJourneyFromDatabase(id)
-		if err != nil {
-			if err == journey.NotFound {
-				ctx.AbortWithStatusJSON(http.StatusNotFound, errors.NotFound)
-			} else {
-				ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
-				general.Log.Error(err)
-			}
-			return
-		}
-
 		user := ctx.MustGet("user").(*types.User)
+		requestedJourney := ctx.MustGet("journey").(*types.Journey)
+		userToAcceptId := helper.ExtractUserId(ctx)
+
+		if userToAcceptId == -1 {
+			return
+		}
+
 		if requestedJourney.UserId != user.Id {
 			ctx.AbortWithStatusJSON(http.StatusForbidden, errors.Forbidden)
 			return
 		}
 
-		err = journey.AcceptUserToJoinJourney(requestedJourney, int64(userToAcceptId))
+		err := journey.AcceptUserToJoinJourney(requestedJourney, int64(userToAcceptId))
 		if err != nil {
 			if err == journey.UserHasAlreadyBeenDeclined {
 				ctx.AbortWithStatusJSON(http.StatusConflict, errors.RequestAlreadyAccepted)
@@ -72,44 +48,20 @@ func AcceptUserToAttend() gin.HandlerFunc {
 
 func CancelAcceptUserToAttend() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		idAsString := ctx.Param("id")
-		userIdAsString := ctx.Param("userId")
-
-		if idAsString == "" || userIdAsString == "" {
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, errors.InvalidRequest)
-			return
-		}
-
-		id, err := strconv.Atoi(idAsString)
-		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, errors.InvalidRequest)
-			return
-		}
-
-		userToAcceptId, err := strconv.Atoi(userIdAsString)
-		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, errors.InvalidRequest)
-			return
-		}
-
-		requestedJourney, err := journey.RetrieveJourneyFromDatabase(id)
-		if err != nil {
-			if err == journey.NotFound {
-				ctx.AbortWithStatusJSON(http.StatusNotFound, errors.NotFound)
-			} else {
-				ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
-				general.Log.Error(err)
-			}
-			return
-		}
-
 		user := ctx.MustGet("user").(*types.User)
+		requestedJourney := ctx.MustGet("journey").(*types.Journey)
+		userToReverseAccept := helper.ExtractUserId(ctx)
+
+		if userToReverseAccept == -1 {
+			return
+		}
+
 		if requestedJourney.UserId != user.Id {
 			ctx.AbortWithStatusJSON(http.StatusForbidden, errors.Forbidden)
 			return
 		}
 
-		err = journey.CancelAcceptToJoinJourney(requestedJourney, int64(userToAcceptId))
+		err := journey.CancelAcceptToJoinJourney(requestedJourney, int64(userToReverseAccept))
 		if err != nil {
 			if err == journey.UserHasNotBeenAccepted {
 				ctx.AbortWithStatusJSON(http.StatusConflict, errors.UserHasNotBeenAccepted)

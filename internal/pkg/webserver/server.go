@@ -29,19 +29,23 @@ func initJourneyRoutes(router *gin.Engine, authHandler gin.HandlerFunc) {
 
 	journeyGroup.GET("/", journey.List())
 	journeyGroup.POST("/", journey.Create())
-	journeyGroup.GET("/:id", journey.Get())
-	journeyGroup.DELETE("/:id", journey.Delete())
 
-	journeyGroup.PUT("/:id/open", journey.ChangeRequestState())
+	journeyIdGroup := journeyGroup.Group("/:id")
+	journeyIdGroup.Use(handler.JourneyIdHandler())
 
-	journeyGroup.POST("/:id/join", attendance.RequestToAttend())
-	journeyGroup.DELETE("/:id/join", attendance.CancelRequestToAttend())
-	journeyGroup.POST("/:id/accept/:userId", attendance.AcceptUserToAttend())
-	journeyGroup.DELETE("/:id/accept/:userId", attendance.CancelAcceptUserToAttend())
-	journeyGroup.POST("/:id/decline/:userId", attendance.DeclineUserToAttend())
-	journeyGroup.DELETE("/:id/decline/:userId", attendance.ReverseDeclineUserToAttend())
+	journeyIdGroup.GET("/", journey.Get())
+	journeyIdGroup.DELETE("/", journey.Delete())
 
-	journeyGroup.POST("/:id/cancel", attendance.Cancel())
+	journeyIdGroup.PUT("/open", journey.ChangeRequestState())
+
+	journeyIdGroup.POST("/join", attendance.RequestToAttend())
+	journeyIdGroup.DELETE("/join", attendance.CancelRequestToAttend())
+	journeyIdGroup.POST("/accept/:userId", attendance.AcceptUserToAttend())
+	journeyIdGroup.DELETE("/accept/:userId", attendance.CancelAcceptUserToAttend())
+	journeyIdGroup.POST("/decline/:userId", attendance.DeclineUserToAttend())
+	journeyIdGroup.DELETE("/decline/:userId", attendance.ReverseDeclineUserToAttend())
+
+	journeyIdGroup.POST("/cancel", attendance.Cancel())
 }
 
 func initAuthRoutes(router *gin.Engine) {

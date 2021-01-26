@@ -9,36 +9,12 @@ import (
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/errors"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 )
 
 func ChangeRequestState() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		idAsString := ctx.Param("id")
-
-		if idAsString == "" {
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, errors.InvalidRequest)
-			return
-		}
-
-		id, err := strconv.Atoi(idAsString)
-		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, errors.InvalidRequest)
-			return
-		}
-
-		requestedJourney, err := journey.RetrieveJourneyFromDatabase(id)
-		if err != nil {
-			if err == journey.NotFound {
-				ctx.AbortWithStatusJSON(http.StatusNotFound, errors.NotFound)
-			} else {
-				ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
-				general.Log.Error(err)
-			}
-			return
-		}
-
 		user := ctx.MustGet("user").(*types.User)
+		requestedJourney := ctx.MustGet("journey").(*types.Journey)
 
 		if requestedJourney.UserId != user.Id {
 			ctx.AbortWithStatusJSON(http.StatusForbidden, errors.Forbidden)

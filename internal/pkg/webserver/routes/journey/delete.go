@@ -7,42 +7,19 @@ import (
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/types"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/errors"
 	"net/http"
-	"strconv"
 )
 
 func Delete() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		idAsString := ctx.Param("id")
-
-		if idAsString == "" {
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, errors.InvalidRequest)
-			return
-		}
-
-		id, err := strconv.Atoi(idAsString)
-		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, errors.InvalidRequest)
-			return
-		}
-
-		journeyToDelete, err := journey.RetrieveJourneyFromDatabase(id)
-		if err != nil {
-			if err == journey.NotFound {
-				ctx.AbortWithStatusJSON(http.StatusNotFound, errors.NotFound)
-			} else {
-				ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
-				general.Log.Error(err)
-			}
-			return
-		}
-
 		user := ctx.MustGet("user").(*types.User)
+		journeyToDelete := ctx.MustGet("journey").(*types.Journey)
+
 		if journeyToDelete.UserId != user.Id {
 			ctx.AbortWithStatusJSON(http.StatusForbidden, errors.Forbidden)
 			return
 		}
 
-		err = journey.DeleteJourneyFromDatabase(id)
+		err := journey.DeleteJourneyFromDatabase(*journeyToDelete.Id)
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
 			general.Log.Error(err)
