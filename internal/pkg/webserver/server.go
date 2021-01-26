@@ -9,6 +9,7 @@ import (
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/routes/authentication"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/routes/journey"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/routes/journey/attendance"
+	"net/http"
 )
 
 func Run(hostname string, port int) {
@@ -17,6 +18,9 @@ func Run(hostname string, port int) {
 
 	authHandler := handler.AuthenticationHandler()
 
+	router.GET("/", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, gin.H{"name": "TravelTogether API", "version": "1.0.0"})
+	})
 	initJourneyRoutes(router, authHandler)
 	initAuthRoutes(router)
 
