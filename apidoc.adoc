@@ -1,6 +1,6 @@
 = API Documentation of the traveltogether backend
 
-Current documented version: `1.0.0`. The version live may be newer.
+Current documented version: `1.1.0`. The version live may be newer.
 
 API Base URL: `https://api.traveltogether.eu/v1`
 
@@ -41,7 +41,7 @@ Example response::
 ----
 {
     "id": 1,
-    "name": "the_user_1",
+    "username": "the_user_1",
     "session_key": "e9cd9ca4-df64-4e3c-8667-a33e2fdaacb9"
 }
 ----
@@ -61,16 +61,19 @@ Register at TravelTogether
 Request params:: none
 Query params:: none
 Request body::
-* name (username) [string]
+* username [string]
 * mail [string]
 * password [string]
+* first_name [string]
+* profile_image (see User section for more information; not required) [string]
+* disabilities (description of user's disabilities; not required) [string]
 Example response::
 200:
 [source,json]
 ----
 {
     "id": 1,
-    "name": "the_user_1",
+    "username": "the_user_1",
     "session_key": "e9cd9ca4-df64-4e3c-8667-a33e2fdaacb9"
 }
 ----
@@ -84,6 +87,172 @@ Errors::
 }
 ----
 
+=== PUT `/auth/mail`
+Description::
+Change the mail address of the current user
+Request params:: none
+Query params:: none
+Request body::
+* mail [string]
+Example response::
+200:
+[source,json]
+----
+{
+    "status": "changed"
+}
+----
+Errors::
+400: Bad/Malformed request +
+*409: Mail address is already in use* +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "mail_already_in_use"
+}
+----
+
+=== PUT `/auth/password`
+Description::
+Change the password of the current user
+Request params:: none
+Query params:: none
+Request body::
+* oldPassword [string]
+* newPassword [string]
+Example response::
+200:
+[source,json]
+----
+{
+    "status": "changed"
+}
+----
+Errors::
+*400: Bad/Malformed request* +
+403: Old password is incorrect +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "invalid_request"
+}
+----
+
+== Users
+NOTE: `id` can be a numeric value or the string `me` for the current user +
+`profile_image` describes the base64 encoded bytes of an image
+
+=== GET `/users/{id}`
+Description::
+Get information of the current user
+Request params:: none
+Query params:: none
+Request body:: none
+Example response::
+200:
+[source,json]
+----
+{
+    "id": "1",
+    "username": "the_user_1",
+    "first_name": "User",
+    "profile_image": "iVBORw0KGgoAAAANSUhEUgAAAH4AAAAaCAMAAABGmBj2AAAAjVBMVEUAAABkZFRmZlJhYU+rq5ulpZZoaFBfX01kZFFlZVKrq5tgYFBmZlKkpJuvr5+srJxlZVCrq5xmZlNfX06np5iqqp2iopRiYlCQkH2rq5tkZFKEhHygoJKRkX2QkHurq52IiHSKinaMjHiSknyqqpqSkn2ZmXeRkX1lZVKRkX2rq5xfX02goJKHh3SQkHwkgriDAAAAKHRSTlMAQIDHgMcg7qBgQBCPHxBQMKBQ27Ng27ORj3AF7oiocPHbyEEwMA92SIWyjwAAAslJREFUSMell+t2qjAQhYcgCXdQsbba2+ntFGj7/o93wgzJYILHhd0/NBNZ68tkZ4YIx9vvdkbft0cg1QFJwkS1O5VthDjUNAyM+IGyWq1WVQk2TrUKPbhtz+gBSOHnqD5mnMKZ2MaixwklMoDg00oAqlh3qBSMcGKlB5y7mz/jjfoaSJJiBaNi+0gyg6++OgdfdAavQeCKpj0885IxlhRueIHg498MnfHrZXgVhrTdG842xFx5haHI1Wdu8NtwEP5+M6CiXZruCuN8twRPWeSYDlsv2Pzhlz3uijT4AIyqgbSDqVZX4DPEs/W1NaOe7IuPb0YQq9RufC3FA+Kt9SHG0uX5YadZpZf83VX4g7U+BzLf7Et+Bp9qTuMl3yzGJ3zUFW52bs3v0Yx5/BNyqiZap0Da6ZkqWoIPhYg5RUkL2Vjzc6y5ZIqPxSBJO11Rod0B6r7r7sHDv7+Yuvh4PFP3OVe9sqvQyqjn7TPGkwKABo0mVSb5nYcvntvvVxy9Prfz+H3AVb8fPUimRFV7eM1h3djkXfzHHz34+QtwfPhpHbybvhrPYMyVX1P+vZzHN2WBzaegNvDk4o8vLerxXS/Dx8dBsNma6pbmoB0mbTjbIy/0vI8Yi7sfYR06+Mf2RLNtR+Gek/UsCaMEhrVz8pETYf0jMMVPB//QXsbTaw2/rbjt2658Ad8MRyCKoqHr3UcREOwS3qY3Ws+KLT7D0MWvT/DkBWsBHrMj6713MHcIF78a0v013mQ9Wp/xe15CTRH0c5ufDpRyvGGkV+MztDwk67eAkmS+6IXEQtA6uPiyo0q7o2UYLWq604OmbP3TOAaB1wtFheDddtbYb/FzDb/Db23G3P8U4vkguviiM/oqHPzCq+Y2O3nxmUBMHvDxsDP4Chz8oot2mHDCcGJ+suVrto+HlG57b+Dj//c3Y4n4P8WcijQtYU7/ANVG7hKeMxekAAAAAElFTkSuQmCC",
+    "disabilities": "I'm visually impaired."
+}
+----
+Errors::
+401: Invalid session +
+*404: User not found* +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "not_found"
+}
+----
+
+=== PUT `/users/{id}/disabilities`
+Description::
+Set information about the user's disabilities
+Request params:: none
+Query params:: none
+Request body::
+* disabilities [string]
+Example response::
+200:
+[source,json]
+----
+{
+    "status": "changed"
+}
+----
+Errors::
+401: Invalid session +
+*403: Trying to modify another user* +
+404: User not found +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "forbidden"
+}
+----
+
+=== PUT `/users/{id}/profile-image`
+Description::
+Set the profile-image of the current user
+Request params:: none
+Query params:: none
+Request body::
+* profile_image [string]
+Example response::
+200:
+[source,json]
+----
+{
+    "status": "changed"
+}
+----
+Errors::
+401: Invalid session +
+*403: Trying to modify another user* +
+404: User not found +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "forbidden"
+}
+----
+
+=== PUT `/users/{id}/username`
+Description::
+Set the username of the current user
+Request params:: none
+Query params:: none
+Request body::
+* username [string]
+Example response::
+200:
+[source,json]
+----
+{
+    "status": "changed"
+}
+----
+Errors::
+401: Invalid session +
+*403: Trying to modify another user* +
+404: User not found +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "forbidden"
+}
+----
 
 
 == Journey
@@ -186,7 +355,7 @@ Example response::
 }
 ----
 Errors::::
-*400: Invalid request data* +
+*400: Bad/Malformed request* +
 401: Invalid session +
 500: Internal server error
 [source,json]
@@ -243,7 +412,7 @@ Example response::
 ----
 
 Errors::::
-400: Invalid request data +
+400: Bad/Malformed request +
 401: Invalid session +
 *404: Not found* +
 500: Internal server error
@@ -271,7 +440,7 @@ Example response::
 ----
 
 Errors::::
-400: Invalid request data +
+400: Bad/Malformed request +
 401: Invalid session +
 *403: Forbidden / permission denied* +
 404: Not found +
@@ -301,7 +470,7 @@ Example response::
 ----
 
 Errors::::
-400: Invalid request data +
+400: Bad/Malformed request +
 *401: Invalid session* +
 403: Forbidden / permission denied +
 404: Not found +
@@ -511,7 +680,7 @@ Example response::
 ----
 
 Errors::::
-400: Invalid request data +
+400: Bad/Malformed request +
 401: Invalid session +
 404: Not found +
 409: *User has not been accepted* +
