@@ -33,10 +33,13 @@ func main() {
 		*databaseSSLMode)
 	database.MustExec("CREATE TABLE IF NOT EXISTS users(" +
 		"id BIGSERIAL PRIMARY KEY," +
-		"name TEXT NOT NULL," +
+		"username TEXT NOT NULL," +
 		"mail TEXT NOT NULL," +
+		"first_name TEXT," +
 		"password TEXT NOT NULL," +
-		"session_key VARCHAR(36))")
+		"session_key VARCHAR(36)," +
+		"profile_image TEXT," +
+		"disabilities TEXT)")
 	database.MustExec("CREATE TABLE IF NOT EXISTS journeys(" +
 		"id BIGSERIAL PRIMARY KEY," +
 		"user_id INTEGER NOT NULL," +

@@ -2,6 +2,7 @@ package helper
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/traveltogether/traveltogether_backend/internal/pkg/types"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/errors"
 	"net/http"
 	"strconv"
@@ -22,4 +23,14 @@ func ExtractUserId(ctx *gin.Context) int {
 	}
 
 	return userId
+}
+
+func ExtractUserIdWithMe(ctx *gin.Context) int {
+	userIdAsString := ctx.Param("userId")
+
+	if userIdAsString == "me" {
+		return ctx.MustGet("user").(*types.User).Id
+	}
+
+	return ExtractUserId(ctx)
 }

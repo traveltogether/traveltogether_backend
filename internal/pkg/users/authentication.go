@@ -1,17 +1,10 @@
 package users
 
 import (
-	"errors"
 	"github.com/andskur/argon2-hashing"
 	"github.com/google/uuid"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/database"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/types"
-)
-
-var (
-	UserNotFound      = errors.New("user not found")
-	UserAlreadyExists = errors.New("user already exists")
-	IncorrectPassword = errors.New("password is incorrect")
 )
 
 func hashPassword(password string) (string, error) {
@@ -26,7 +19,7 @@ func compareHashAndPassword(hash string, password string) error {
 
 func GetUserByAuthenticationKey(key string) (*types.User, error) {
 	slice, err := database.QueryAsync(database.DefaultTimeout, types.UserType,
-		"SELECT id, name, mail FROM users WHERE session_key = $1", key)
+		"SELECT id, username, mail, first_name, profile_image, disabilities FROM users WHERE session_key = $1", key)
 
 	if err != nil {
 		return nil, err
@@ -41,18 +34,12 @@ func GetUserByAuthenticationKey(key string) (*types.User, error) {
 }
 
 func Login(nameOrMail string, password string) (*types.AuthenticationInformation, error) {
-	slice, err := database.QueryAsync(database.DefaultTimeout, types.PwHashInformationType,
-		"SELECT password FROM users WHERE mail = $1 OR name = $2", nameOrMail, nameOrMail)
+	passwordHash, err := getUserPasswordHash(nameOrMail)
 	if err != nil {
 		return nil, err
 	}
 
-	passwords := slice.([]*types.PasswordHashInformation)
-	if len(passwords) == 0 {
-		return nil, UserNotFound
-	}
-
-	if err = compareHashAndPassword(passwords[0].PasswordHash, password); err != nil {
+	if err = compareHashAndPassword(passwordHash, password); err != nil {
 		return nil, IncorrectPassword
 	}
 
@@ -61,8 +48,8 @@ func Login(nameOrMail string, password string) (*types.AuthenticationInformation
 		return nil, err
 	}
 
-	slice, err = database.QueryAsync(database.DefaultTimeout, types.AuthInformationType,
-		"UPDATE users SET session_key = $1 WHERE mail = $2 OR name = $3 RETURNING id, name, session_key",
+	slice, err := database.QueryAsync(database.DefaultTimeout, types.AuthInformationType,
+		"UPDATE users SET session_key = $1 WHERE mail = $2 OR username = $3 RETURNING id, username, session_key",
 		sessionKey, nameOrMail, nameOrMail)
 	if err != nil {
 		return nil, err
@@ -76,9 +63,10 @@ func Login(nameOrMail string, password string) (*types.AuthenticationInformation
 	return authInfos[0], err
 }
 
-func Register(name string, mailAddress string, password string) (*types.AuthenticationInformation, error) {
+func Register(name string, mailAddress string, password string, firstname *string, profileImage *string,
+	disabilities *string) (*types.AuthenticationInformation, error) {
 	slice, err := database.QueryAsync(database.DefaultTimeout, types.IdInformationType,
-		"SELECT id FROM users WHERE mail = $1 OR name = $2", mailAddress, name)
+		"SELECT id FROM users WHERE mail = $1 OR username = $2", mailAddress, name)
 	if err != nil {
 		return nil, err
 	}
@@ -98,8 +86,9 @@ func Register(name string, mailAddress string, password string) (*types.Authenti
 	}
 
 	slice, err = database.QueryAsync(database.DefaultTimeout, types.AuthInformationType,
-		"INSERT INTO users(name, mail, password, session_key) VALUES($1, $2, $3, $4) RETURNING id, name, session_key",
-		name, mailAddress, passwordHash, sessionKey)
+		"INSERT INTO users(username, mail, first_name, password, session_key, profile_image, disabilities) "+
+			"VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id, username, session_key",
+		name, mailAddress, firstname, passwordHash, sessionKey, profileImage, disabilities)
 	if err != nil {
 		return nil, err
 	}
@@ -131,4 +120,19 @@ func getNewSessionKey() (string, error) {
 	}
 
 	return key, err
+}
+
+func getUserPasswordHash(nameOrMail string) (string, error) {
+	slice, err := database.QueryAsync(database.DefaultTimeout, types.PwHashInformationType,
+		"SELECT password FROM users WHERE mail = $1 OR username = $2", nameOrMail, nameOrMail)
+	if err != nil {
+		return "", err
+	}
+
+	passwords := slice.([]*types.PasswordHashInformation)
+	if len(passwords) == 0 {
+		return "", UserNotFound
+	}
+
+	return passwords[0].PasswordHash, nil
 }
