@@ -1,6 +1,7 @@
 package authentication
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/general"
@@ -36,7 +37,21 @@ func Register() gin.HandlerFunc {
 			return
 		}
 
-		authInfo, err := users.Register(registrationData.Username, registrationData.Mail, registrationData.Password)
+		if registrationData.ProfileImageAsBase64 != nil {
+			decodedImage, err := base64.StdEncoding.DecodeString(*registrationData.ProfileImageAsBase64)
+			if err != nil {
+				ctx.AbortWithStatusJSON(http.StatusBadRequest, errors.InvalidRequest)
+				return
+			}
+			fileGuess := http.DetectContentType(decodedImage)
+			if !strings.HasPrefix(fileGuess, "image/") {
+				ctx.AbortWithStatusJSON(http.StatusBadRequest, errors.InvalidRequest)
+				return
+			}
+		}
+
+		authInfo, err := users.Register(registrationData.Username, registrationData.Mail, registrationData.Password,
+			registrationData.FirstName, registrationData.ProfileImageAsBase64, registrationData.Disabilities)
 		if err != nil {
 			if err == users.UserAlreadyExists {
 				ctx.AbortWithStatusJSON(http.StatusBadRequest, errors.UserAlreadyExists)
