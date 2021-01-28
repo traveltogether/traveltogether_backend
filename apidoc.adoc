@@ -4,7 +4,8 @@ Current documented version: `1.1.1`. The version live may be newer.
 
 API Base URL: `https://api.traveltogether.eu/v1`
 
-NOTE: All request bodies have to be provided as JSON formatted string.
+NOTE: All request bodies have to be provided as JSON formatted string. +
+Authentication information must be provided by using the header `X-Auth-Key` using the `session_key` returned on login/register.
 
 IMPORTANT: Not all errors are listed with their example response. Some errors may occur that you have never seen before. Watch out and don't be scared.
 
@@ -30,6 +31,7 @@ Example response::
 === POST `/auth/login`
 Description::
 Login at TravelTogether
+Authentication required:: no
 Request params:: none
 Query params:: none
 Request body::
@@ -58,6 +60,7 @@ Errors::
 === POST `/auth/register`
 Description::
 Register at TravelTogether
+Authentication required:: no
 Request params:: none
 Query params:: none
 Request body::
@@ -90,6 +93,7 @@ Errors::
 === PUT `/auth/mail`
 Description::
 Change the mail address of the current user
+Authentication required:: yes
 Request params:: none
 Query params:: none
 Request body::
@@ -116,6 +120,7 @@ Errors::
 === PUT `/auth/password`
 Description::
 Change the password of the current user
+Authentication required:: yes
 Request params:: none
 Query params:: none
 Request body::
@@ -143,6 +148,8 @@ Errors::
 == Users
 NOTE: `id` can be a numeric value or the string `me` for the current user +
 `profile_image` describes the base64 encoded bytes of an image
+
+IMPORTANT: All `/users` routes require authentication.
 
 === GET `/users/{id}`
 Description::
@@ -257,6 +264,8 @@ Errors::
 
 == Journey
 NOTE: The fields starting with `approximate` are calculated server-side to enhance privacy of the user providing the journey request. They differ from the actual values randomly.
+
+IMPORTANT: All `/journeys` routes require authentication.
 
 === GET `/journeys`
 Description::
