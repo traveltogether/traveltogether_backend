@@ -1,6 +1,6 @@
 = API Documentation of the traveltogether backend
 
-Current documented version: `1.1.0`. The version live may be newer.
+Current documented version: `1.1.1`. The version live may be newer.
 
 API Base URL: `https://api.traveltogether.eu/v1`
 
@@ -33,7 +33,7 @@ Login at TravelTogether
 Request params:: none
 Query params:: none
 Request body::
-* nameOrMail (username or mail address) [string]
+* username_or_mail (username or mail address) [string]
 * password [string]
 Example response::
 200:
@@ -119,8 +119,8 @@ Change the password of the current user
 Request params:: none
 Query params:: none
 Request body::
-* oldPassword [string]
-* newPassword [string]
+* old_password [string]
+* new_password [string]
 Example response::
 200:
 [source,json]

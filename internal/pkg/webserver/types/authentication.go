@@ -1,7 +1,7 @@
 package types
 
 type LoginData struct {
-	UsernameOrMail string `json:"usernameOrMail"`
+	UsernameOrMail string `json:"username_or_mail"`
 	Password       string `json:"password"`
 }
 

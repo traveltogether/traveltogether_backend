@@ -30,9 +30,9 @@ func ChangePassword() gin.HandlerFunc {
 			return
 		}
 
-		if value, ok := body["oldPassword"]; ok {
+		if value, ok := body["old_password"]; ok {
 			if oldPassword, ok := value.(string); ok {
-				if value, ok := body["newPassword"]; ok {
+				if value, ok := body["new_password"]; ok {
 					if newPassword, ok := value.(string); ok {
 
 						err = users.ChangePassword(user, oldPassword, newPassword)
