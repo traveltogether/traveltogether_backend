@@ -1,12 +1,13 @@
 package journey
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/nominatim"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/types"
-	"math/rand"
+	"math/big"
 	"strconv"
 	"strings"
 	"time"
@@ -23,7 +24,7 @@ func CreateJourney(httpBody []byte, user *types.User) (*types.Journey, error) {
 		return nil, err
 	}
 
-	if (journey.Offer && journey.Request) || (!journey.Offer && !journey.Request) || !journey.OpenForRequests {
+	if (journey.Offer && journey.Request) || (!journey.Offer && !journey.Request) {
 		return nil, InvalidDetails
 	}
 
@@ -83,32 +84,31 @@ func CreateJourney(httpBody []byte, user *types.User) (*types.Journey, error) {
 		endAddress.Postcode, endAddress.City)
 	journey.EndAddressString = &endAddressString
 
-	approximateStartLat := float32(startLat) + 0.001*float32(rand.Intn(3)+1)
-	approximateStartLong := float32(startLong) + 0.001*float32(rand.Intn(3)+1)
-	approximateEndLat := float32(endLat) + 0.001*float32(rand.Intn(3)+1)
-	approximateEndLong := float32(endLong) + 0.001*float32(rand.Intn(3)+1)
+	approximateStartAddressInformation := &types.AddressInformation{
+		Latitude:  startLat,
+		Longitude: startLong,
+	}
 
-	approximateStartLatLong := fmt.Sprintf("%.8g;%.8g", approximateStartLat, approximateStartLong)
-	approximateEndLatLong := fmt.Sprintf("%.8g;%.8g", approximateEndLat, approximateEndLong)
-
-	journey.ApproximateStartLatLong = &approximateStartLatLong
-	journey.ApproximateEndLatLong = &approximateEndLatLong
-
-	approximateStartAddress, err := nominatim.GetAddress(approximateStartLat, approximateStartLong)
+	err = getApproximateAddress(approximateStartAddressInformation)
 	if err != nil {
 		return nil, err
 	}
-	approximateStartAddressString := fmt.Sprintf("%s %s, %s %s", approximateStartAddress.Road,
-		approximateStartAddress.HouseNumber, approximateStartAddress.Postcode, approximateStartAddress.City)
-	journey.ApproximateStartAddressString = &approximateStartAddressString
 
-	approximateEndAddress, err := nominatim.GetAddress(approximateEndLat, approximateEndLong)
+	journey.ApproximateStartLatLong = &approximateStartAddressInformation.ApproximateLatLong
+	journey.ApproximateStartAddressString = &approximateStartAddressInformation.ApproximateAddress
+
+	approximateEndAddressInformation := &types.AddressInformation{
+		Latitude:  endLat,
+		Longitude: endLong,
+	}
+
+	err = getApproximateAddress(approximateEndAddressInformation)
 	if err != nil {
 		return nil, err
 	}
-	approximateEndAddressString := fmt.Sprintf("%s %s, %s %s", approximateEndAddress.Road,
-		approximateEndAddress.HouseNumber, approximateEndAddress.Postcode, approximateEndAddress.City)
-	journey.ApproximateEndAddressString = &approximateEndAddressString
+
+	journey.ApproximateEndLatLong = &approximateEndAddressInformation.ApproximateLatLong
+	journey.ApproximateEndAddressString = &approximateEndAddressInformation.ApproximateAddress
 
 	journey.Id = nil
 	journey.CancelledByAttendeeIds = nil
@@ -118,6 +118,53 @@ func CreateJourney(httpBody []byte, user *types.User) (*types.Journey, error) {
 	journey.AcceptedUserIds = nil
 	journey.PendingUserIds = nil
 	journey.UserId = user.Id
+	journey.OpenForRequests = true
 
 	return journey, nil
+}
+
+func getApproximateAddress(addressInformation *types.AddressInformation) error {
+	addressInformation.Try += 1
+
+	if addressInformation.Try == 3 {
+		return nil
+	}
+
+	approximateLat, err := offsetCoordinate(addressInformation.Latitude)
+	if err != nil {
+		return err
+	}
+	addressInformation.ApproximateLatitude = approximateLat
+
+	approximateLong, err := offsetCoordinate(addressInformation.Longitude)
+	if err != nil {
+		return err
+	}
+	addressInformation.ApproximateLongitude = approximateLong
+
+	osmAddress, err := nominatim.GetAddress(float32(approximateLat), float32(approximateLong))
+	if err != nil {
+		return err
+	}
+
+	addressInformation.ApproximateAddress = fmt.Sprintf("%s %s, %s %s", osmAddress.Road,
+		osmAddress.HouseNumber, osmAddress.Postcode, osmAddress.City)
+	addressInformation.ApproximateLatLong = fmt.Sprintf("%.8g;%.8g", approximateLat, approximateLong)
+
+	if strings.TrimSpace(osmAddress.HouseNumber) == "" {
+		return getApproximateAddress(addressInformation)
+	}
+
+	return nil
+}
+
+func offsetCoordinate(coordinate float64) (float64, error) {
+	nBig, err := rand.Int(rand.Reader, big.NewInt(6))
+	if err != nil {
+		return 0, err
+	}
+
+	n := nBig.Int64() - 3
+
+	return coordinate + 0.001*float64(n), nil
 }
