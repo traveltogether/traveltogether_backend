@@ -7,10 +7,10 @@ type OSMResponse struct {
 	OsmID       int        `json:"osm_id"`
 	Lat         string     `json:"lat"`
 	Lon         string     `json:"lon"`
-	PlaceRank   int        `json:"place_rank"`
+	PlaceRank   float64    `json:"place_rank"`
 	Category    string     `json:"category"`
 	Type        string     `json:"type"`
-	Importance  int        `json:"importance"`
+	Importance  float64    `json:"importance"`
 	AddressType string     `json:"addresstype"`
 	Name        *string    `json:"name"`
 	DisplayName string     `json:"display_name"`
