@@ -2,6 +2,7 @@ package journey
 
 import (
 	"errors"
+	"fmt"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/database"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/types"
 )
@@ -54,6 +55,28 @@ func RetrieveJourneyFromDatabase(id int) (*types.Journey, error) {
 
 func GetAllJourneysFromDatabase() ([]*types.Journey, error) {
 	slice, err := database.QueryAsync(database.DefaultTimeout, types.JourneyType, "SELECT * from journeys")
+	if err != nil {
+		return nil, err
+	}
+
+	return slice.([]*types.Journey), nil
+}
+
+func GetJourneysFromDatabaseFilteredBy(filters map[string]interface{}) ([]*types.Journey, error) {
+	query := "SELECT * FROM journeys"
+	values := make([]interface{}, 0, len(filters))
+	if len(filters) != 0 {
+		query += " WHERE "
+		index := 1
+		for key, value := range filters {
+			query += fmt.Sprintf("%s=$%d AND ", key, index)
+			values = append(values, value)
+			index += 1
+		}
+		query = query[:len(query)-5]
+	}
+
+	slice, err := database.QueryAsync(database.DefaultTimeout, types.JourneyType, query, values...)
 	if err != nil {
 		return nil, err
 	}
