@@ -159,12 +159,21 @@ func getApproximateAddress(addressInformation *types.AddressInformation) error {
 }
 
 func offsetCoordinate(coordinate float64) (float64, error) {
-	nBig, err := rand.Int(rand.Reader, big.NewInt(6))
-	if err != nil {
-		return 0, err
-	}
+	limit := big.NewInt(6)
+	n := int64(0)
 
-	n := nBig.Int64() - 3
+	for {
+		nBig, err := rand.Int(rand.Reader, limit)
+		if err != nil {
+			return 0, err
+		}
+
+		n = nBig.Int64() - 3
+
+		if n != 0 {
+			break
+		}
+	}
 
 	return coordinate + 0.001*float64(n), nil
 }
