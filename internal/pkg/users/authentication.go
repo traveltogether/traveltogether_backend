@@ -4,6 +4,7 @@ import (
 	"github.com/andskur/argon2-hashing"
 	"github.com/google/uuid"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/database"
+	"github.com/traveltogether/traveltogether_backend/internal/pkg/general"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/types"
 )
 
@@ -34,6 +35,11 @@ func GetUserByAuthenticationKey(key string) (*types.User, error) {
 }
 
 func Login(nameOrMail string, password string) (*types.AuthenticationInformation, error) {
+	ok, nameOrMail := general.IsNameValid(nameOrMail)
+	if !ok {
+		return nil, InvalidMailAddressOrUsername
+	}
+
 	passwordHash, err := getUserPasswordHash(nameOrMail)
 	if err != nil {
 		return nil, err
@@ -65,6 +71,16 @@ func Login(nameOrMail string, password string) (*types.AuthenticationInformation
 
 func Register(name string, mailAddress string, password string, firstname *string, profileImage *string,
 	disabilities *string) (*types.AuthenticationInformation, error) {
+	ok, mailAddress := general.IsEmailValid(mailAddress)
+	if !ok {
+		return nil, InvalidMailAddressOrUsername
+	}
+
+	ok, name = general.IsNameValid(name)
+	if !ok {
+		return nil, InvalidMailAddressOrUsername
+	}
+
 	slice, err := database.QueryAsync(database.DefaultTimeout, types.IdInformationType,
 		"SELECT id FROM users WHERE mail = $1 OR username = $2", mailAddress, name)
 	if err != nil {

@@ -39,6 +39,8 @@ func Login() gin.HandlerFunc {
 		if err != nil {
 			if err == users.UserNotFound || err == users.IncorrectPassword {
 				ctx.AbortWithStatusJSON(http.StatusBadRequest, errors.InvalidLoginData)
+			} else if err == users.InvalidMailAddressOrUsername {
+				ctx.AbortWithStatusJSON(http.StatusBadRequest, errors.InvalidMailAddressOrUsername)
 			} else {
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
 				general.Log.Error(err)

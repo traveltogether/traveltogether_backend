@@ -55,6 +55,8 @@ func Register() gin.HandlerFunc {
 		if err != nil {
 			if err == users.UserAlreadyExists {
 				ctx.AbortWithStatusJSON(http.StatusBadRequest, errors.UserAlreadyExists)
+			} else if err == users.InvalidMailAddressOrUsername {
+				ctx.AbortWithStatusJSON(http.StatusBadRequest, errors.InvalidMailAddressOrUsername)
 			} else {
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
 				general.Log.Error(err)

@@ -1,6 +1,6 @@
-= API Documentation of the traveltogether backend
+= API Documentation of the travel together backend
 
-Current documented version: `1.1.1`. The version live may be newer.
+Current documented version: `1.1.2`. The version live may be newer.
 
 API Base URL: `https://api.traveltogether.eu/v1`
 
@@ -22,15 +22,15 @@ Example response::
 [source,json]
 ----
 {
-    "name": "TravelTogether API",
-    "version": "1.0.0"
+    "name": "travel together API",
+    "version": "1.1.2"
 }
 ----
 
 == Authentication
 === POST `/auth/login`
 Description::
-Login at TravelTogether
+Login at travel together
 Authentication required:: no
 Request params:: none
 Query params:: none
@@ -48,7 +48,7 @@ Example response::
 }
 ----
 Errors::
-*400:* Bad/Malformed request _or_ *incorrect login data* +
+*400:* Bad/Malformed request _or_ *incorrect login data* _or_ invalid mail address or username +
 500: Internal server error
 [source,json]
 ----
@@ -59,7 +59,7 @@ Errors::
 
 === POST `/auth/register`
 Description::
-Register at TravelTogether
+Register at travel together
 Authentication required:: no
 Request params:: none
 Query params:: none
@@ -81,7 +81,7 @@ Example response::
 }
 ----
 Errors::
-*400:* Bad/Malformed request _or_ *user already exists* +
+*400:* Bad/Malformed request _or_ *user already exists* _or_ invalid mail address or username +
 500: Internal server error
 [source,json]
 ----

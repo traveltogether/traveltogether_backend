@@ -21,4 +21,5 @@ var (
 	UserHasNotBeenDeclined           = gin.H{"error": "user_has_not_been_declined"}
 	NotRequestedToJoin               = gin.H{"error": "not_requested_to_join"}
 	MailAlreadyInUse                 = gin.H{"error": "mail_already_in_use"}
+	InvalidMailAddressOrUsername     = gin.H{"error": "invalid_mail_address_or_username"}
 )

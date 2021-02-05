@@ -20,7 +20,7 @@ func Run(hostname string, port int) {
 	authHandler := handler.AuthenticationHandler()
 
 	router.GET("/", func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, gin.H{"name": "TravelTogether API", "version": "1.1.1"})
+		ctx.JSON(http.StatusOK, gin.H{"name": "travel together API", "version": "1.1.2"})
 	})
 	initJourneyRoutes(router, authHandler)
 	initAuthRoutes(router, authHandler)
