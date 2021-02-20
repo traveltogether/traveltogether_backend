@@ -72,9 +72,9 @@ func main() {
 		"id BIGSERIAL PRIMARY KEY," +
 		"chat_id INTEGER NOT NULL REFERENCES chat_rooms(id) ON DELETE CASCADE," +
 		"message TEXT NOT NULL," +
-		"sender INTEGER NOT NULL," +
+		"sender_id INTEGER NOT NULL," +
 		"read_by INTEGER[]," +
-		"time INTEGER NOT NULL)")
+		"time BIGINT NOT NULL)")
 
 	webserver.Run(*webserverHostname, *webserverPort)
 }
