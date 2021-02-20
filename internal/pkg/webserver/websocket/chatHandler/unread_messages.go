@@ -11,7 +11,7 @@ import (
 func HandleUnreadMessagesPacket(conn *websocket.Conn, user *types.User, packet *types.ChatUnreadMessagesPacket) error {
 	messages, err := chat.ConnectionManager.GetUnreadMessages(user.Id)
 	if err != nil {
-		general.Log.Error("Failed to send response to websocket", err)
+		general.Log.Error("Failed to send response to websocket: ", err)
 		return conn.WriteJSON(errors.InternalError)
 	}
 

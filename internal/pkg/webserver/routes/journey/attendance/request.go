@@ -30,7 +30,7 @@ func RequestToAttend() gin.HandlerFunc {
 				ctx.AbortWithStatusJSON(http.StatusConflict, errors.RequestAlreadyAccepted)
 			} else {
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
-				general.Log.Error(err)
+				general.Log.Error("Failed to request to attend journey: ", err)
 			}
 			return
 		}
@@ -52,7 +52,7 @@ func CancelRequestToAttend() gin.HandlerFunc {
 				ctx.AbortWithStatusJSON(http.StatusConflict, errors.NotRequestedToJoin)
 			} else {
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
-				general.Log.Error(err)
+				general.Log.Error("Failed to cancel to attend journey: ", err)
 			}
 			return
 		}

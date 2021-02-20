@@ -26,7 +26,7 @@ func Get() gin.HandlerFunc {
 				ctx.AbortWithStatusJSON(http.StatusNotFound, errors.NotFound)
 			} else {
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
-				general.Log.Error(err)
+				general.Log.Error("Failed to get user: ", err)
 			}
 			return
 		}

@@ -37,7 +37,7 @@ func DeclineUserToAttend() gin.HandlerFunc {
 				ctx.AbortWithStatusJSON(http.StatusConflict, errors.JourneyAlreadyTookPlace)
 			} else {
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
-				general.Log.Error(err)
+				general.Log.Error("Failed to decline user to attend journey: ", err)
 			}
 			return
 		}
@@ -70,7 +70,7 @@ func ReverseDeclineUserToAttend() gin.HandlerFunc {
 				ctx.AbortWithStatusJSON(http.StatusConflict, errors.JourneyAlreadyTookPlace)
 			} else {
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
-				general.Log.Error(err)
+				general.Log.Error("Failed to reverse decline to attend journey: ", err)
 			}
 			return
 		}

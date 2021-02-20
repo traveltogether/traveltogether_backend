@@ -51,7 +51,7 @@ func ChangeRequestState() gin.HandlerFunc {
 		err = journey.ChangeRequestState(requestedJourney, value.(bool))
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
-			general.Log.Error(err)
+			general.Log.Error("Failed to change journey request state: ", err)
 			return
 		}
 

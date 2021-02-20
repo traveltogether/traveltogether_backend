@@ -3,6 +3,7 @@ package users
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"github.com/traveltogether/traveltogether_backend/internal/pkg/general"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/types"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/users"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/errors"
@@ -41,6 +42,7 @@ func ChangeFirstname() gin.HandlerFunc {
 
 				err = users.ChangeFirstname(user, firstName)
 				if err != nil {
+					general.Log.Error("Failed to change firstname: ", err)
 					ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
 					return
 				}

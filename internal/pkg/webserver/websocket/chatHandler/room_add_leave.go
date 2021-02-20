@@ -21,7 +21,7 @@ func HandleRoomAddUserPacket(conn *websocket.Conn, user *types.User, packet *typ
 		} else if err == users.UserNotFound {
 			return conn.WriteJSON(errors.UserNotFound)
 		} else {
-			general.Log.Error("Failed to send response to websocket", err)
+			general.Log.Error("Failed to send response to websocket: ", err)
 			return conn.WriteJSON(errors.InternalError)
 		}
 	}
@@ -36,7 +36,7 @@ func HandleRoomLeaveUserPacket(conn *websocket.Conn, user *types.User, packet *t
 		} else if err == chat.NotInRoom {
 			return conn.WriteJSON(errors.NotInRoom)
 		} else {
-			general.Log.Error("Failed to send response to websocket", err)
+			general.Log.Error("Failed to send response to websocket: ", err)
 			return conn.WriteJSON(errors.InternalError)
 		}
 	}

@@ -19,7 +19,7 @@ func HandleMessagePacket(conn *websocket.Conn, user *types.User, packet *types.C
 		} else if err == users.UserNotFound {
 			return conn.WriteJSON(errors.UserNotFound)
 		} else {
-			general.Log.Error("Failed to send response to websocket", err)
+			general.Log.Error("Failed to send response to websocket: ", err)
 			if id == -1 {
 				return conn.WriteJSON(errors.InternalError)
 			}

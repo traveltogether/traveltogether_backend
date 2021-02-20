@@ -3,6 +3,7 @@ package users
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"github.com/traveltogether/traveltogether_backend/internal/pkg/general"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/types"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/users"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/errors"
@@ -41,6 +42,7 @@ func ChangeDisabilities() gin.HandlerFunc {
 
 				err = users.ChangeDisabilities(user, disabilities)
 				if err != nil {
+					general.Log.Error("Failed to change disabilities: ", err)
 					ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
 					return
 				}

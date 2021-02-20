@@ -23,7 +23,7 @@ func HandleCreateRoom(conn *websocket.Conn, user *types.User, packet *types.Chat
 		} else if err == chat.PrivateChatCanOnlyContainTwoUsers {
 			return conn.WriteJSON(errors.PrivateChatCanOnlyContainTwoUsers)
 		}
-		general.Log.Error("Failed to send response to websocket", err)
+		general.Log.Error("Failed to send response to websocket: ", err)
 		return conn.WriteJSON(errors.InternalError)
 	}
 

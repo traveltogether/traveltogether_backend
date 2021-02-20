@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"github.com/traveltogether/traveltogether_backend/internal/pkg/general"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/types"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/users"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/errors"
@@ -54,6 +55,7 @@ func ChangeProfileImage() gin.HandlerFunc {
 
 				err = users.ChangeProfileImage(user, base64String)
 				if err != nil {
+					general.Log.Error("Failed to change profile image: ", err)
 					ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
 					return
 				}

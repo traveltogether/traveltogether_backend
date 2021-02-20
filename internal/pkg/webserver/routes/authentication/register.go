@@ -59,7 +59,7 @@ func Register() gin.HandlerFunc {
 				ctx.AbortWithStatusJSON(http.StatusBadRequest, errors.InvalidMailAddressOrUsername)
 			} else {
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
-				general.Log.Error(err)
+				general.Log.Error("Failed to register user: ", err)
 			}
 			return
 		}

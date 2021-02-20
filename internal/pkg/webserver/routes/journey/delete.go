@@ -22,7 +22,7 @@ func Delete() gin.HandlerFunc {
 		err := journey.DeleteJourneyFromDatabase(*journeyToDelete.Id)
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
-			general.Log.Error(err)
+			general.Log.Error("Failed to delete journey: ", err)
 			return
 		}
 

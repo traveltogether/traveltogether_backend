@@ -28,6 +28,7 @@ func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *ty
 	if err != nil {
 		writer.WriteHeader(500)
 		writer.Write([]byte("{\"error\": \"websocket_upgrade_failed\"}"))
+		general.Log.Error("Failed to upgrade websocket: ", err)
 	}
 
 	chat.ConnectionManager.AddConnection(user.Id, connection)
@@ -39,7 +40,7 @@ func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *ty
 		for {
 			messageType, message, err := connection.ReadMessage()
 			if err != nil {
-				general.Log.Error("Failed to read websocket message", err)
+				general.Log.Error("Failed to read websocket message: ", err)
 				break
 			}
 
@@ -48,7 +49,7 @@ func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *ty
 			} else if messageType == websocket.PingMessage {
 				err = connection.WriteMessage(websocket.PongMessage, message)
 				if err != nil {
-					general.Log.Error("Failed to send pong to websocket", err)
+					general.Log.Error("Failed to send pong to websocket: ", err)
 					break
 				}
 			}
@@ -56,10 +57,10 @@ func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *ty
 			var messageMap map[string]interface{}
 			err = json.Unmarshal(message, &messageMap)
 			if err != nil {
-				general.Log.Error("Failed to decode json", err)
+				general.Log.Error("Failed to decode json: ", err)
 				err = connection.WriteJSON(errors.InvalidRequest)
 				if err != nil {
-					general.Log.Error("Failed to send response to websocket", err)
+					general.Log.Error("Failed to send response to websocket: ", err)
 					break
 				}
 
@@ -71,10 +72,10 @@ func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *ty
 				packet := types.CreateChatMessagePacket()
 				jsonBytes, err := json.Marshal(messageMap)
 				if err != nil {
-					general.Log.Error("Failed encode map to json", err)
+					general.Log.Error("Failed encode map to json: ", err)
 					err = connection.WriteJSON(errors.InternalError)
 					if err != nil {
-						general.Log.Error("Failed to send response to websocket", err)
+						general.Log.Error("Failed to send response to websocket: ", err)
 						break loop
 					}
 					continue loop
@@ -82,10 +83,10 @@ func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *ty
 
 				err = json.Unmarshal(jsonBytes, packet)
 				if err != nil {
-					general.Log.Error("Failed encode json to ChatMessagePacket", err)
+					general.Log.Error("Failed encode json to ChatMessagePacket: ", err)
 					err = connection.WriteJSON(errors.InternalError)
 					if err != nil {
-						general.Log.Error("Failed to send response to websocket", err)
+						general.Log.Error("Failed to send response to websocket: ", err)
 						break loop
 					}
 					continue loop
@@ -93,17 +94,17 @@ func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *ty
 
 				err = chatHandler.HandleMessagePacket(connection, user, packet)
 				if err != nil {
-					general.Log.Error("Failed to send response to websocket", err)
+					general.Log.Error("Failed to send response to websocket: ", err)
 					break loop
 				}
 			case strings.ToLower(types.ChatRoomAddUserPacketName):
 				packet := types.CreateChatRoomAddUserPacket()
 				jsonBytes, err := json.Marshal(messageMap)
 				if err != nil {
-					general.Log.Error("Failed encode map to json", err)
+					general.Log.Error("Failed encode map to json: ", err)
 					err = connection.WriteJSON(errors.InternalError)
 					if err != nil {
-						general.Log.Error("Failed to send response to websocket", err)
+						general.Log.Error("Failed to send response to websocket: ", err)
 						break loop
 					}
 					continue loop
@@ -111,10 +112,10 @@ func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *ty
 
 				err = json.Unmarshal(jsonBytes, packet)
 				if err != nil {
-					general.Log.Error("Failed encode json to ChatRoomAddUserPacket", err)
+					general.Log.Error("Failed encode json to ChatRoomAddUserPacket: ", err)
 					err = connection.WriteJSON(errors.InternalError)
 					if err != nil {
-						general.Log.Error("Failed to send response to websocket", err)
+						general.Log.Error("Failed to send response to websocket: ", err)
 						break loop
 					}
 					continue loop
@@ -122,17 +123,17 @@ func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *ty
 
 				err = chatHandler.HandleRoomAddUserPacket(connection, user, packet)
 				if err != nil {
-					general.Log.Error("Failed to send response to websocket", err)
+					general.Log.Error("Failed to send response to websocket: ", err)
 					break loop
 				}
 			case strings.ToLower(types.ChatRoomLeaveUserPacketName):
 				packet := types.CreateChatRoomLeaveUserPacket()
 				jsonBytes, err := json.Marshal(messageMap)
 				if err != nil {
-					general.Log.Error("Failed encode map to json", err)
+					general.Log.Error("Failed encode map to json: ", err)
 					err = connection.WriteJSON(errors.InternalError)
 					if err != nil {
-						general.Log.Error("Failed to send response to websocket", err)
+						general.Log.Error("Failed to send response to websocket: ", err)
 						break loop
 					}
 					continue loop
@@ -140,10 +141,10 @@ func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *ty
 
 				err = json.Unmarshal(jsonBytes, packet)
 				if err != nil {
-					general.Log.Error("Failed encode json to ChatRoomLeaveUserPacket", err)
+					general.Log.Error("Failed encode json to ChatRoomLeaveUserPacket: ", err)
 					err = connection.WriteJSON(errors.InternalError)
 					if err != nil {
-						general.Log.Error("Failed to send response to websocket", err)
+						general.Log.Error("Failed to send response to websocket: ", err)
 						break loop
 					}
 					continue loop
@@ -151,17 +152,17 @@ func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *ty
 
 				err = chatHandler.HandleRoomLeaveUserPacket(connection, user, packet)
 				if err != nil {
-					general.Log.Error("Failed to send response to websocket", err)
+					general.Log.Error("Failed to send response to websocket: ", err)
 					break loop
 				}
 			case strings.ToLower(types.ChatRoomCreatePacketName):
 				packet := types.CreateChatRoomCreatePacket()
 				jsonBytes, err := json.Marshal(messageMap)
 				if err != nil {
-					general.Log.Error("Failed encode map to json", err)
+					general.Log.Error("Failed encode map to json: ", err)
 					err = connection.WriteJSON(errors.InternalError)
 					if err != nil {
-						general.Log.Error("Failed to send response to websocket", err)
+						general.Log.Error("Failed to send response to websocket: ", err)
 						break loop
 					}
 					continue loop
@@ -169,10 +170,10 @@ func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *ty
 
 				err = json.Unmarshal(jsonBytes, packet)
 				if err != nil {
-					general.Log.Error("Failed encode json to ChatRoomCreatePacket", err)
+					general.Log.Error("Failed encode json to ChatRoomCreatePacket: ", err)
 					err = connection.WriteJSON(errors.InternalError)
 					if err != nil {
-						general.Log.Error("Failed to send response to websocket", err)
+						general.Log.Error("Failed to send response to websocket: ", err)
 						break loop
 					}
 					continue loop
@@ -180,17 +181,17 @@ func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *ty
 
 				err = chatHandler.HandleCreateRoom(connection, user, packet)
 				if err != nil {
-					general.Log.Error("Failed to send response to websocket", err)
+					general.Log.Error("Failed to send response to websocket: ", err)
 					break loop
 				}
 			case strings.ToLower(types.ChatUnreadMessagesPacketName):
 				packet := types.CreateChatUnreadMessagesPacket()
 				jsonBytes, err := json.Marshal(messageMap)
 				if err != nil {
-					general.Log.Error("Failed encode map to json", err)
+					general.Log.Error("Failed encode map to json: ", err)
 					err = connection.WriteJSON(errors.InternalError)
 					if err != nil {
-						general.Log.Error("Failed to send response to websocket", err)
+						general.Log.Error("Failed to send response to websocket: ", err)
 						break loop
 					}
 					continue loop
@@ -198,10 +199,10 @@ func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *ty
 
 				err = json.Unmarshal(jsonBytes, packet)
 				if err != nil {
-					general.Log.Error("Failed encode json to ChatUnreadMessagesPacket", err)
+					general.Log.Error("Failed encode json to ChatUnreadMessagesPacket: ", err)
 					err = connection.WriteJSON(errors.InternalError)
 					if err != nil {
-						general.Log.Error("Failed to send response to websocket", err)
+						general.Log.Error("Failed to send response to websocket: ", err)
 						break loop
 					}
 					continue loop
@@ -209,17 +210,17 @@ func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *ty
 
 				err = chatHandler.HandleUnreadMessagesPacket(connection, user, packet)
 				if err != nil {
-					general.Log.Error("Failed to send response to websocket", err)
+					general.Log.Error("Failed to send response to websocket: ", err)
 					break loop
 				}
 			case strings.ToLower(types.ChatRoomMessagesPacketName):
 				packet := types.CreateChatRoomMessagesPacket()
 				jsonBytes, err := json.Marshal(messageMap)
 				if err != nil {
-					general.Log.Error("Failed encode map to json", err)
+					general.Log.Error("Failed encode map to json: ", err)
 					err = connection.WriteJSON(errors.InternalError)
 					if err != nil {
-						general.Log.Error("Failed to send response to websocket", err)
+						general.Log.Error("Failed to send response to websocket: ", err)
 						break loop
 					}
 					continue loop
@@ -230,7 +231,7 @@ func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *ty
 					general.Log.Error("Failed encode json to ChatRoomMessagesPacket", err)
 					err = connection.WriteJSON(errors.InternalError)
 					if err != nil {
-						general.Log.Error("Failed to send response to websocket", err)
+						general.Log.Error("Failed to send response to websocket: ", err)
 						break loop
 					}
 					continue loop
@@ -238,17 +239,17 @@ func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *ty
 
 				err = chatHandler.HandleRoomMessagesPacket(connection, user, packet)
 				if err != nil {
-					general.Log.Error("Failed to send response to websocket", err)
+					general.Log.Error("Failed to send response to websocket: ", err)
 					break loop
 				}
 			case strings.ToLower(types.ChatRoomsPacketName):
 				packet := types.CreateChatRoomsPacket()
 				jsonBytes, err := json.Marshal(messageMap)
 				if err != nil {
-					general.Log.Error("Failed encode map to json", err)
+					general.Log.Error("Failed encode map to json: ", err)
 					err = connection.WriteJSON(errors.InternalError)
 					if err != nil {
-						general.Log.Error("Failed to send response to websocket", err)
+						general.Log.Error("Failed to send response to websocket: ", err)
 						break loop
 					}
 					continue loop
@@ -256,10 +257,10 @@ func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *ty
 
 				err = json.Unmarshal(jsonBytes, packet)
 				if err != nil {
-					general.Log.Error("Failed encode json to ChatRoomsPacket", err)
+					general.Log.Error("Failed encode json to ChatRoomsPacket: ", err)
 					err = connection.WriteJSON(errors.InternalError)
 					if err != nil {
-						general.Log.Error("Failed to send response to websocket", err)
+						general.Log.Error("Failed to send response to websocket: ", err)
 						break loop
 					}
 					continue loop
@@ -267,13 +268,13 @@ func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *ty
 
 				err = chatHandler.HandleRoomsPacket(connection, user, packet)
 				if err != nil {
-					general.Log.Error("Failed to send response to websocket", err)
+					general.Log.Error("Failed to send response to websocket: ", err)
 					break loop
 				}
 			default:
 				err = connection.WriteJSON(errors.InvalidRequest)
 				if err != nil {
-					general.Log.Error("Failed to send response to websocket", err)
+					general.Log.Error("Failed to send response to websocket: ", err)
 					break
 				}
 			}

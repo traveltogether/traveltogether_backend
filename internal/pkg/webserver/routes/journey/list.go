@@ -46,7 +46,7 @@ func List() gin.HandlerFunc {
 
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
-			general.Log.Error(err)
+			general.Log.Error("Failed to list journeys: ", err)
 			return
 		}
 

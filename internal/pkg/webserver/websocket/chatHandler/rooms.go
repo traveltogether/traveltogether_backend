@@ -11,7 +11,7 @@ import (
 func HandleRoomsPacket(conn *websocket.Conn, user *types.User, packet *types.ChatRoomsPacket) error {
 	rooms, err := chat.ConnectionManager.GetChatRoomsJoinedByUser(user.Id)
 	if err != nil {
-		general.Log.Error("Failed to send response to websocket", err)
+		general.Log.Error("Failed to send response to websocket: ", err)
 		return conn.WriteJSON(errors.InternalError)
 	}
 

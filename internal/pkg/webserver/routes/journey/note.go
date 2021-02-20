@@ -40,7 +40,7 @@ func ChangeNote() gin.HandlerFunc {
 
 				err = journey.ChangeNote(requestedJourney, &note)
 				if err != nil {
-					general.Log.Error(err)
+					general.Log.Error("Failed to change note: ", err)
 					ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
 					return
 				}

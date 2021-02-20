@@ -26,7 +26,7 @@ func Cancel() gin.HandlerFunc {
 					ctx.AbortWithStatusJSON(http.StatusConflict, errors.UserHasNotBeenAccepted)
 				} else {
 					ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
-					general.Log.Error(err)
+					general.Log.Error("Failed to cancel attendance to journey: ", err)
 				}
 				return
 			}
@@ -56,7 +56,7 @@ func Cancel() gin.HandlerFunc {
 			err = journey.CancelJourney(requestedJourney, fmt.Sprintf("%v", reason))
 			if err != nil {
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
-				general.Log.Error(err)
+				general.Log.Error("Failed to cancel journey: ", err)
 				return
 			}
 		}

@@ -3,6 +3,7 @@ package users
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"github.com/traveltogether/traveltogether_backend/internal/pkg/general"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/types"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/users"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/errors"
@@ -44,6 +45,7 @@ func ChangeUsername() gin.HandlerFunc {
 					if err == users.UserAlreadyExists {
 						ctx.AbortWithStatusJSON(http.StatusConflict, errors.UserAlreadyExists)
 					} else {
+						general.Log.Error("Failed to change username: ", err)
 						ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
 					}
 					return

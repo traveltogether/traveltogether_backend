@@ -43,7 +43,7 @@ func Login() gin.HandlerFunc {
 				ctx.AbortWithStatusJSON(http.StatusBadRequest, errors.InvalidMailAddressOrUsername)
 			} else {
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
-				general.Log.Error(err)
+				general.Log.Error("Failed to login user: ", err)
 			}
 			return
 		}

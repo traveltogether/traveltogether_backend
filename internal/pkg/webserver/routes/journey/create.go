@@ -25,7 +25,7 @@ func Create() gin.HandlerFunc {
 				ctx.AbortWithStatusJSON(http.StatusBadRequest, errors.InvalidRequest)
 			} else {
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
-				general.Log.Error(err)
+				general.Log.Error("Failed to create journey: ", err)
 			}
 			return
 		}
@@ -33,7 +33,7 @@ func Create() gin.HandlerFunc {
 		err = journey.InsertJourneyToDatabase(createdJourney)
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
-			general.Log.Error(err)
+			general.Log.Error("Failed to insert journey to database: ", err)
 			return
 		}
 
