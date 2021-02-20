@@ -15,6 +15,16 @@ func ChangeRequestState(journey *types.Journey, state bool) error {
 	return nil
 }
 
+func ChangeNote(journey *types.Journey, note *string) error {
+	if err := database.PrepareAsync(database.DefaultTimeout,
+		"UPDATE journeys SET note = $1 WHERE id = $2", note, *journey.Id); err != nil {
+		return err
+	}
+
+	journey.Note = note
+	return nil
+}
+
 func CancelJourney(journey *types.Journey, reason string) error {
 	err := database.PrepareAsync(database.DefaultTimeout,
 		"UPDATE journeys SET cancelled_by_host = true, cancelled_by_host_reason = $1 WHERE id = $2",

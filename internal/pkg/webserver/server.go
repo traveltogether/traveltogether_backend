@@ -42,6 +42,7 @@ func initJourneyRoutes(router *gin.Engine, authHandler gin.HandlerFunc) {
 	journeyIdGroup.DELETE("", journey.Delete())
 
 	journeyIdGroup.PUT("/open", journey.ChangeRequestState())
+	journeyIdGroup.PUT("/note", journey.ChangeNote())
 
 	journeyIdGroup.POST("/join", attendance.RequestToAttend())
 	journeyIdGroup.DELETE("/join", attendance.CancelRequestToAttend())
