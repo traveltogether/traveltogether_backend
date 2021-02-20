@@ -62,7 +62,19 @@ func main() {
 		"declined_user_ids INTEGER[]," +
 		"cancelled_by_host BOOLEAN NOT NULL," +
 		"cancelled_by_host_reason TEXT," +
-		"cancelled_by_attendee_ids INTEGER[])")
+		"cancelled_by_attendee_ids INTEGER[]," +
+		"note TEXT)")
+	database.MustExec("CREATE TABLE IF NOT EXISTS chat_rooms(" +
+		"id BIGSERIAL PRIMARY KEY," +
+		"participants INTEGER[]," +
+		"group_chat BOOLEAN NOT NULL)")
+	database.MustExec("CREATE TABLE IF NOT EXISTS chat_messages(" +
+		"id BIGSERIAL PRIMARY KEY," +
+		"chat_id INTEGER NOT NULL REFERENCES chat_rooms(id) ON DELETE CASCADE," +
+		"message TEXT NOT NULL," +
+		"sender INTEGER NOT NULL," +
+		"read_by INTEGER[]," +
+		"time INTEGER NOT NULL)")
 
 	webserver.Run(*webserverHostname, *webserverPort)
 }
