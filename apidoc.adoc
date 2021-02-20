@@ -1,6 +1,6 @@
 = API Documentation of the travel together backend
 
-Current documented version: `1.1.3`. The version live may be newer.
+Current documented version: `1.2.0`. The version live may be newer.
 
 API Base URL: `https://api.traveltogether.eu/v1`
 
@@ -158,13 +158,14 @@ Request params:: none
 Query params:: none
 Request body:: none
 Example response::
-200:
+200: (mail address only visible for me/own id)
 [source,json]
 ----
 {
     "id": "1",
     "username": "the_user_1",
     "first_name": "User",
+    "mail":  "mail@user.one",
     "profile_image": "iVBORw0KGgoAAAANSUhEUgAAAH4AAAAaCAMAAABGmBj2AAAAjVBMVEUAAABkZFRmZlJhYU+rq5ulpZZoaFBfX01kZFFlZVKrq5tgYFBmZlKkpJuvr5+srJxlZVCrq5xmZlNfX06np5iqqp2iopRiYlCQkH2rq5tkZFKEhHygoJKRkX2QkHurq52IiHSKinaMjHiSknyqqpqSkn2ZmXeRkX1lZVKRkX2rq5xfX02goJKHh3SQkHwkgriDAAAAKHRSTlMAQIDHgMcg7qBgQBCPHxBQMKBQ27Ng27ORj3AF7oiocPHbyEEwMA92SIWyjwAAAslJREFUSMell+t2qjAQhYcgCXdQsbba2+ntFGj7/o93wgzJYILHhd0/NBNZ68tkZ4YIx9vvdkbft0cg1QFJwkS1O5VthDjUNAyM+IGyWq1WVQk2TrUKPbhtz+gBSOHnqD5mnMKZ2MaixwklMoDg00oAqlh3qBSMcGKlB5y7mz/jjfoaSJJiBaNi+0gyg6++OgdfdAavQeCKpj0885IxlhRueIHg498MnfHrZXgVhrTdG842xFx5haHI1Wdu8NtwEP5+M6CiXZruCuN8twRPWeSYDlsv2Pzhlz3uijT4AIyqgbSDqVZX4DPEs/W1NaOe7IuPb0YQq9RufC3FA+Kt9SHG0uX5YadZpZf83VX4g7U+BzLf7Et+Bp9qTuMl3yzGJ3zUFW52bs3v0Yx5/BNyqiZap0Da6ZkqWoIPhYg5RUkL2Vjzc6y5ZIqPxSBJO11Rod0B6r7r7sHDv7+Yuvh4PFP3OVe9sqvQyqjn7TPGkwKABo0mVSb5nYcvntvvVxy9Prfz+H3AVb8fPUimRFV7eM1h3djkXfzHHz34+QtwfPhpHbybvhrPYMyVX1P+vZzHN2WBzaegNvDk4o8vLerxXS/Dx8dBsNma6pbmoB0mbTjbIy/0vI8Yi7sfYR06+Mf2RLNtR+Gek/UsCaMEhrVz8pETYf0jMMVPB//QXsbTaw2/rbjt2658Ad8MRyCKoqHr3UcREOwS3qY3Ws+KLT7D0MWvT/DkBWsBHrMj6713MHcIF78a0v013mQ9Wp/xe15CTRH0c5ufDpRyvGGkV+MztDwk67eAkmS+6IXEQtA6uPiyo0q7o2UYLWq604OmbP3TOAaB1wtFheDddtbYb/FzDb/Db23G3P8U4vkguviiM/oqHPzCq+Y2O3nxmUBMHvDxsDP4Chz8oot2mHDCcGJ+suVrto+HlG57b+Dj//c3Y4n4P8WcijQtYU7/ANVG7hKeMxekAAAAAElFTkSuQmCC",
     "disabilities": "I'm visually impaired."
 }
@@ -214,6 +215,33 @@ Request params:: none
 Query params:: none
 Request body::
 * profile_image [string]
+Example response::
+200:
+[source,json]
+----
+{
+    "status": "changed"
+}
+----
+Errors::
+401: Invalid session +
+*403: Trying to modify another user* +
+404: User not found +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "forbidden"
+}
+----
+
+=== PUT `/users/{id}/firstname`
+Description::
+Set the firstname of the current user
+Request params:: none
+Query params:: none
+Request body::
+* first_name [string]
 Example response::
 200:
 [source,json]
@@ -363,7 +391,7 @@ Example response::
   "time_is_departure": true,
   "time_is_arrival": false,
   "open_for_requests": true,
-  "cancelled_by_host": false,
+  "cancelled_by_host": false
 }
 ----
 Errors::::
@@ -472,6 +500,36 @@ Request params::
 Query params:: none
 Request body::
 * value [bool]
+Example response::
+200:
+[source,json]
+----
+{
+  "status": "changed"
+}
+----
+
+Errors::::
+400: Bad/Malformed request +
+*401: Invalid session* +
+403: Forbidden / permission denied +
+404: Not found +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "missing_authentication"
+}
+----
+
+=== PUT `/journeys/{id}/note`
+Description::
+Change the note of the journey
+Request params::
+* id (of the journey) [int]
+Query params:: none
+Request body::
+* note [string]
 Example response::
 200:
 [source,json]
@@ -702,5 +760,266 @@ Errors::::
 ----
 {
     "error": "user_has_not_been_accepted"
+}
+----
+
+== Websocket
+IMPORTANT: The websocket is responsible for instant communication via the chat module. All messages are send as a TextMessage (id: 1), whilst closing the socket is supported by using the CloseMessage (id: 8). Ping (id: 9) and Pong (id: 10) are supported as well.
+
+NOTE: The communication is based on a Packet-based design choice. Nearly all requests and responses are presented as a Packet, while simple responses such as "ok" or errors are simple JSON strings. All packets are JSON strings and dividing into two parts (type and information/details, ...)
+
+=== ChatMessagePacket
+Description::
+Chat message
+Request body::
+* type = "ChatMessagePacket"
+* chat_message = {id int, chat_id int, sender_id int, receiver_id int, message string, time int} +
+Sent as request, only chat_id/receiver_id (for group communication: receiver_id is not possible), message and time (as milliseconds) are required. Other fields will be set in the response.
+Example response::
+[source,json]
+----
+{
+  "type": "ChatMessagePacket",
+  "chat_message": {
+    "id": 5,
+    "chat_id": 2,
+    "sender_id": 1,
+    "message": "Hey, I'll be there in 5 minutes.",
+    "time": 1611674722517
+  }
+}
+----
+
+Errors::::
+Invalid Chat Packet +
+Invalid session +
+*Room does not exist* +
+Internal server error
+[source,json]
+----
+{
+    "error": "room_does_not_exist"
+}
+----
+
+=== ChatRoomAddUserPacket
+Description::
+Add user to a chat room/group
+Request body::
+* type = "ChatRoomAddUserPacket"
+* information = {user_id int, chat_id int} +
+user_id describes the user to add in the group chat_id.
+Example response::
+[source,json]
+----
+{
+  "type": "ChatRoomAddUserPacket",
+  "information": {
+    "chat_id": 2,
+    "user_id": 3
+  }
+}
+----
+
+Errors::::
+*No permission* +
+User not found +
+Room does not exist or user is already in room +
+Room is not a group +
+Internal server error
+[source,json]
+----
+{
+    "error": "no_permission"
+}
+----
+
+=== ChatRoomLeaveUserPacket
+Description::
+Leave a chat room/group
+Request body::
+* type = "ChatRoomAddUserPacket"
+* information = {chat_id int} +
+Example response::
+[source,json]
+----
+{
+  "type": "ChatRoomLeaveUserPacket",
+  "information": {
+    "chat_id": 2
+  }
+}
+----
+
+Errors::::
+*Not in room* +
+Room does not exist +
+Room is not a group +
+Internal server error
+[source,json]
+----
+{
+    "error": "not_in_room"
+}
+----
+
+=== ChatRoomCreatePacket
+Description::
+Create a chat room/group
+Request body::
+* type = "ChatRoomCreatePacket"
+* information = {id int, participants int[], group bool} +
+participants is an array of user ids, which should be added to the room. Group defines if the room is a group or not.
+Example response::
+[source,json]
+----
+{
+  "type": "ChatRoomCreatePacket",
+  "information": {
+    "id": 2,
+    "participants": [
+      3,
+      4,
+      1
+    ],
+    "group": true
+  }
+}
+----
+
+Errors::::
+*Private chat can only contain two users* +
+User not found +
+Internal server error
+[source,json]
+----
+{
+    "error": "private_chat_can_only_contain_2_users"
+}
+----
+
+=== ChatUnreadMessagesPacket
+Description::
+Create a chat room/group
+Request body::
+* type = "ChatUnreadMessagesPacket"
+* chat_messages = [{id int, chat_id int, sender_id int, message string, time int}] +
+Example response::
+
+[source,json]
+----
+{
+  "type": "ChatUnreadMessagesPacket",
+  "chat_messages": [
+      {
+        "id": 1,
+        "chat_id": 1,
+        "sender_id": 2,
+        "message": "Hello there.",
+        "time": 1611674722517
+      },
+      {
+        "id": 4,
+        "chat_id": 5,
+        "sender_id": 4,
+        "message": "Hi.",
+        "time": 1611674722517
+      }
+    ]
+}
+----
+
+Errors::::
+*Internal server error*
+[source,json]
+----
+{
+    "error": "internal_server_error"
+}
+----
+
+=== ChatRoomMessagesPacket
+Description::
+Get messages from a specific chat room/group
+Request body::
+* type = "ChatRoomMessagesPacket"
+* chat_messages = [{id int, chat_id int, sender_id int, message string, time int}] +
+Example response::
+
+[source,json]
+----
+{
+  "type": "ChatUnreadMessagesPacket",
+  "chat_id": 1,
+  "chat_messages": [
+      {
+        "id": 1,
+        "chat_id": 1,
+        "sender_id": 2,
+        "message": "Hello there.",
+        "time": 1611674722517
+      },
+      {
+        "id": 2,
+        "chat_id": 1,
+        "sender_id": 4,
+        "message": "Hi.",
+        "time": 1611674722517
+      }
+    ]
+}
+----
+
+Errors::::
+*Internal server error*
+[source,json]
+----
+{
+    "error": "internal_server_error"
+}
+----
+
+=== ChatRoomsPacket
+Description::
+Get all chat rooms which the user has joined
+Request body::
+* type = "ChatRoomsPacket"
+* chat_rooms = [{id int, participants int[], group bool}] +
+chat_rooms must not be set in a request.
+Example response::
+
+[source,json]
+----
+{
+  "type": "ChatRoomsPacket",
+  "chat_rooms": [
+     {
+        "id": 2,
+        "participants": [
+            3,
+            4,
+            1
+        ],
+        "group": true
+      },
+      {
+        "id": 3,
+        "participants": [
+            5,
+            7,
+            1
+        ],
+        "group": true
+      }
+    ]
+}
+----
+
+Errors::::
+*Internal server error*
+[source,json]
+----
+{
+    "error": "internal_server_error"
 }
 ----
