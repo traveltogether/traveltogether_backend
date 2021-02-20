@@ -1,8 +1,11 @@
 package journey
 
 import (
+	"github.com/lib/pq"
+	"github.com/traveltogether/traveltogether_backend/internal/pkg/chat"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/database"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/types"
+	"time"
 )
 
 func ChangeRequestState(journey *types.Journey, state bool) error {
@@ -37,7 +40,24 @@ func CancelJourney(journey *types.Journey, reason string) error {
 	journey.CancelledByHost = true
 	journey.CancelledByHostReason = &reason
 
-	// TODO notify user via chat about cancelled journey
+	emptySlice := pq.Int64Array{}
+	if journey.AcceptedUserIds == nil {
+		journey.AcceptedUserIds = &emptySlice
+	}
+	if journey.PendingUserIds == nil {
+		journey.PendingUserIds = &emptySlice
+	}
+
+	chatMessage := &types.ChatMessage{}
+	chatMessage.Time = int(time.Now().UnixNano() / int64(time.Millisecond))
+	chatMessage.Message = reason
+	chatMessage.SenderId = &journey.UserId
+
+	for userId := range append(*journey.AcceptedUserIds, *journey.PendingUserIds...) {
+		chatMessage.ChatId = nil
+		chatMessage.ReceiverId = &userId
+		chat.ConnectionManager.SendMessage(chatMessage, journey.UserId, false)
+	}
 
 	return nil
 }

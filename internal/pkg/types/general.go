@@ -1,9 +1,13 @@
 package types
 
-import "reflect"
+import (
+	"github.com/lib/pq"
+	"reflect"
+)
 
 var (
 	IdInformationType = reflect.TypeOf(&IdInformation{})
+	Int64ArrayType    = reflect.TypeOf(pq.Int64Array{})
 )
 
 type IdInformation struct {

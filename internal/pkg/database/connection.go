@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/types"
 	"reflect"
@@ -43,11 +44,13 @@ func PrepareStatement(query string, values ...interface{}) error {
 }
 
 func Query(structType reflect.Type, query string, values ...interface{}) *QueryResult {
-	if structType.Kind() != reflect.Ptr {
-		return &QueryResult{nil, NotAPointer}
-	}
-	if structType.Elem().Kind() != reflect.Struct {
-		return &QueryResult{nil, NotAStruct}
+	if structType.String() != "pq.Int64Array" {
+		if structType.Kind() != reflect.Ptr {
+			return &QueryResult{nil, NotAPointer}
+		}
+		if structType.Elem().Kind() != reflect.Struct {
+			return &QueryResult{nil, NotAStruct}
+		}
 	}
 
 	switch structType.String() {
@@ -77,6 +80,18 @@ func Query(structType reflect.Type, query string, values ...interface{}) *QueryR
 		return &QueryResult{results, err}
 	case "*types.MailInformation":
 		results := reflect.MakeSlice(reflect.SliceOf(structType), 0, 0).Interface().([]*types.MailInformation)
+		err := connection.Select(&results, query, values...)
+		return &QueryResult{results, err}
+	case "*types.ChatMessage":
+		results := reflect.MakeSlice(reflect.SliceOf(structType), 0, 0).Interface().([]*types.ChatMessage)
+		err := connection.Select(&results, query, values...)
+		return &QueryResult{results, err}
+	case "*types.ChatRoom":
+		results := reflect.MakeSlice(reflect.SliceOf(structType), 0, 0).Interface().([]*types.ChatRoom)
+		err := connection.Select(&results, query, values...)
+		return &QueryResult{results, err}
+	case "pq.Int64Array":
+		results := reflect.MakeSlice(reflect.SliceOf(structType), 0, 0).Interface().(pq.Int64Array)
 		err := connection.Select(&results, query, values...)
 		return &QueryResult{results, err}
 	default:

@@ -18,7 +18,7 @@ func Cancel() gin.HandlerFunc {
 		requestedJourney := ctx.MustGet("journey").(*types.Journey)
 
 		if requestedJourney.UserId != user.Id {
-			err := journey.CancelAttendanceAtJourney(requestedJourney, int64(user.Id))
+			err := journey.CancelAttendanceAtJourney(requestedJourney, user)
 			if err != nil {
 				if err == journey.RequestingOwnJourney {
 					ctx.AbortWithStatusJSON(http.StatusUnprocessableEntity, errors.RequestingOwnJourney)

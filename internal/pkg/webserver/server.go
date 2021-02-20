@@ -5,11 +5,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/toorop/gin-logrus"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/general"
+	"github.com/traveltogether/traveltogether_backend/internal/pkg/types"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/handler"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/routes/authentication"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/routes/journey"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/routes/journey/attendance"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/routes/users"
+	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/websocket"
 	"net/http"
 )
 
@@ -22,6 +24,10 @@ func Run(hostname string, port int) {
 	router.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"name": "travel together API", "version": "1.1.3"})
 	})
+	router.GET("/websocket", func(ctx *gin.Context) {
+		websocket.HandleWebsocket(ctx.Writer, ctx.Request, ctx.MustGet("user").(*types.User))
+	}, authHandler)
+
 	initJourneyRoutes(router, authHandler)
 	initAuthRoutes(router, authHandler)
 	initUserRoutes(router, authHandler)

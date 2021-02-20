@@ -2,8 +2,10 @@ package journey
 
 import (
 	"errors"
+	"fmt"
 	"github.com/forestgiant/sliceutil"
 	"github.com/lib/pq"
+	"github.com/traveltogether/traveltogether_backend/internal/pkg/chat"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/database"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/general"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/types"
@@ -234,15 +236,15 @@ func ReverseDeclineUserToJoinJourney(journey *types.Journey, userId int64) error
 	return nil
 }
 
-func CancelAttendanceAtJourney(journey *types.Journey, userId int64) error {
-	if int64(journey.UserId) == userId {
+func CancelAttendanceAtJourney(journey *types.Journey, user *types.User) error {
+	if int64(journey.UserId) == int64(user.Id) {
 		return RequestingOwnJourney
 	}
 
 	if journey.AcceptedUserIds == nil {
 		return UserHasNotBeenAccepted
 	}
-	if !sliceutil.Contains(*journey.AcceptedUserIds, userId) {
+	if !sliceutil.Contains(*journey.AcceptedUserIds, int64(user.Id)) {
 		return UserHasNotBeenAccepted
 	}
 
@@ -253,20 +255,26 @@ func CancelAttendanceAtJourney(journey *types.Journey, userId int64) error {
 	if err := database.PrepareAsync(database.DefaultTimeout, "UPDATE journeys SET cancelled_by_attendee_ids = "+
 		"array_append(cancelled_by_attendee_ids, $1) WHERE id = $2 "+
 		"AND (cancelled_by_attendee_ids IS NULL OR NOT $3=ANY(cancelled_by_attendee_ids))",
-		userId, *journey.Id, userId); err != nil {
+		int64(user.Id), *journey.Id, int64(user.Id)); err != nil {
 		return err
 	}
 
-	// TODO notify host about change
+	chatMessage := &types.ChatMessage{}
+	chatMessage.Time = int(time.Now().UnixNano() / int64(time.Millisecond))
+	chatMessage.Message = fmt.Sprintf("User %s left the journey.", user.Username)
+	chatMessage.SenderId = &user.Id
+	chatMessage.ReceiverId = &journey.UserId
 
-	*journey.CancelledByAttendeeIds = append(*journey.CancelledByAttendeeIds, userId)
+	chat.ConnectionManager.SendMessage(chatMessage, user.Id, false)
+
+	*journey.CancelledByAttendeeIds = append(*journey.CancelledByAttendeeIds, int64(user.Id))
 
 	if err := database.PrepareAsync(database.DefaultTimeout, "UPDATE journeys SET accepted_user_ids = "+
 		"array_remove(accepted_user_ids, $1) WHERE id = $2 AND $3 = ANY(accepted_user_ids)",
-		userId, *journey.Id, userId); err != nil {
+		int64(user.Id), *journey.Id, int64(user.Id)); err != nil {
 		return err
 	}
 
-	*journey.AcceptedUserIds = general.RemoveIntFromSlice(*journey.AcceptedUserIds, userId)
+	*journey.AcceptedUserIds = general.RemoveIntFromSlice(*journey.AcceptedUserIds, int64(user.Id))
 	return nil
 }
