@@ -31,15 +31,15 @@ func saveMessageIntoDatabase(message string, chatId int, senderId int, readBy *p
 		return -1, err
 	}
 
-	if len(*participants) == 0 {
+	if len(participants) == 0 {
 		return -1, NotInRoom
 	}
 
 	slice, err := database.QueryAsync(database.DefaultTimeout, types.IdInformationType,
 		"INSERT INTO "+
-			"chat_messages(chat_id, message, sender, read_by, time) "+
+			"chat_messages(chat_id, message, sender_id, read_by, time) "+
 			"VALUES($1, $2, $3, $4, $5) RETURNING id",
-		chatId, message, senderId, readBy, time)
+		chatId, message, senderId, *readBy, time)
 
 	if err != nil {
 		return -1, err
@@ -61,8 +61,8 @@ func createChatRoomInDatabase(participants *pq.Int64Array, group bool) (int, err
 		return -1, PrivateChatCanOnlyContainTwoUsers
 	}
 
-	for userId := range *participants {
-		_, err := users.GetUserById(userId)
+	for _, userId := range *participants {
+		_, err := users.GetUserById(int(userId))
 		if err != nil {
 			return -1, err
 		}
@@ -72,7 +72,7 @@ func createChatRoomInDatabase(participants *pq.Int64Array, group bool) (int, err
 		"INSERT INTO "+
 			"chat_rooms(participants, group_chat) "+
 			"VALUES($1, $2) RETURNING id",
-		participants, group)
+		*participants, group)
 
 	if err != nil {
 		return -1, err
@@ -142,14 +142,14 @@ func leaveChatRoomFromDatabase(chatId int, userId int) error {
 		return NotInRoom
 	}
 
-	slice, err = database.QueryAsync(database.DefaultTimeout, types.Int64ArrayType,
+	slice, err = database.QueryAsync(database.DefaultTimeout, types.ParticipantsInformationType,
 		"SELECT participants FROM chat_rooms WHERE id = $1",
 		chatId)
 	if err != nil {
 		return err
 	}
 
-	if len(slice.(pq.Int64Array)) == 0 {
+	if len(slice.([]*types.ParticipantsInformation)[0].Participants) == 0 {
 		return database.PrepareAsync(database.DefaultTimeout, "DELETE FROM chat_rooms WHERE id = $1", chatId)
 	}
 
@@ -186,8 +186,8 @@ func addUserToChatRoomInDatabase(chatId int, userId int) error {
 	return nil
 }
 
-func getParticipantsOfChatRoom(chatId int) (*pq.Int64Array, error) {
-	slice, err := database.QueryAsync(database.DefaultTimeout, types.Int64ArrayType,
+func getParticipantsOfChatRoom(chatId int) (pq.Int64Array, error) {
+	slice, err := database.QueryAsync(database.DefaultTimeout, types.ParticipantsInformationType,
 		"SELECT participants FROM chat_rooms WHERE id = $1 AND participants IS NOT NULL",
 		chatId)
 
@@ -195,11 +195,11 @@ func getParticipantsOfChatRoom(chatId int) (*pq.Int64Array, error) {
 		return nil, err
 	}
 
-	return slice.(*pq.Int64Array), nil
+	return slice.([]*types.ParticipantsInformation)[0].Participants, nil
 }
 
-func getParticipantsOfChatRoomAsUser(chatId int, userId int) (*pq.Int64Array, error) {
-	slice, err := database.QueryAsync(database.DefaultTimeout, types.Int64ArrayType,
+func getParticipantsOfChatRoomAsUser(chatId int, userId int) (pq.Int64Array, error) {
+	slice, err := database.QueryAsync(database.DefaultTimeout, types.ParticipantsInformationType,
 		"SELECT participants FROM chat_rooms WHERE id = $1 AND participants IS NOT NULL AND $2 = ANY(participants)",
 		chatId, userId)
 
@@ -207,7 +207,7 @@ func getParticipantsOfChatRoomAsUser(chatId int, userId int) (*pq.Int64Array, er
 		return nil, err
 	}
 
-	return slice.(*pq.Int64Array), nil
+	return slice.([]*types.ParticipantsInformation)[0].Participants, nil
 }
 
 func getUnreadMessagesFromDatabase(userId int) ([]*types.ChatMessage, error) {
@@ -220,8 +220,8 @@ func getUnreadMessagesFromDatabase(userId int) ([]*types.ChatMessage, error) {
 			"AND $2 = ANY(chat_rooms.participants) "+
 			"AND (chat_messages.read_by IS NULL OR NOT $3 = ANY(chat_messages.read_by)) "+
 			"RETURNING chat_messages.id AS id, chat_messages.chat_id AS chat_id, "+
-			"chat_messages.message AS message, chat.messages_sender_id AS sender_id, chat_messages.time AS time",
-		userId, userId)
+			"chat_messages.message AS message, chat_messages.sender_id AS sender_id, chat_messages.time AS time",
+		userId, userId, userId)
 
 	if err != nil {
 		return nil, err

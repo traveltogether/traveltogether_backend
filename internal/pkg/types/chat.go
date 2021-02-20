@@ -11,18 +11,23 @@ const (
 	ChatRoomLeaveUserPacketName  = "ChatRoomLeaveUserPacket"
 	ChatRoomCreatePacketName     = "ChatRoomCreatePacket"
 	ChatUnreadMessagesPacketName = "ChatUnreadMessagesPacket"
-	ChatRoomMessagesPacketName   = "ChatRoomMessagesPacketName"
+	ChatRoomMessagesPacketName   = "ChatRoomMessagesPacket"
 	ChatRoomsPacketName          = "ChatRoomsPacket"
 )
 
 var (
-	GroupInformationType = reflect.TypeOf(&GroupInformation{})
-	ChatMessageType      = reflect.TypeOf(&ChatMessage{})
-	ChatRoomType         = reflect.TypeOf(&ChatRoom{})
+	GroupInformationType        = reflect.TypeOf(&GroupInformation{})
+	ChatMessageType             = reflect.TypeOf(&ChatMessage{})
+	ChatRoomType                = reflect.TypeOf(&ChatRoom{})
+	ParticipantsInformationType = reflect.TypeOf(&ParticipantsInformation{})
 )
 
 type GroupInformation struct {
-	Group bool `db:"group"`
+	Group bool `db:"group_chat"`
+}
+
+type ParticipantsInformation struct {
+	Participants pq.Int64Array `db:"participants"`
 }
 
 type ChatMessage struct {

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jmoiron/sqlx"
-	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/types"
 	"reflect"
@@ -90,8 +89,12 @@ func Query(structType reflect.Type, query string, values ...interface{}) *QueryR
 		results := reflect.MakeSlice(reflect.SliceOf(structType), 0, 0).Interface().([]*types.ChatRoom)
 		err := connection.Select(&results, query, values...)
 		return &QueryResult{results, err}
-	case "pq.Int64Array":
-		results := reflect.MakeSlice(reflect.SliceOf(structType), 0, 0).Interface().(pq.Int64Array)
+	case "*types.ParticipantsInformation":
+		results := reflect.MakeSlice(reflect.SliceOf(structType), 0, 0).Interface().([]*types.ParticipantsInformation)
+		err := connection.Select(&results, query, values...)
+		return &QueryResult{results, err}
+	case "*types.GroupInformation":
+		results := reflect.MakeSlice(reflect.SliceOf(structType), 0, 0).Interface().([]*types.GroupInformation)
 		err := connection.Select(&results, query, values...)
 		return &QueryResult{results, err}
 	default:

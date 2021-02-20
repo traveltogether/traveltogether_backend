@@ -5,7 +5,6 @@ import (
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/chat"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/database"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/types"
-	"time"
 )
 
 func ChangeRequestState(journey *types.Journey, state bool) error {
@@ -49,11 +48,11 @@ func CancelJourney(journey *types.Journey, reason string) error {
 	}
 
 	chatMessage := &types.ChatMessage{}
-	chatMessage.Time = int(time.Now().UnixNano() / int64(time.Millisecond))
 	chatMessage.Message = reason
 	chatMessage.SenderId = &journey.UserId
 
-	for userId := range append(*journey.AcceptedUserIds, *journey.PendingUserIds...) {
+	for _, userId := range append(*journey.AcceptedUserIds, *journey.PendingUserIds...) {
+		userId := int(userId)
 		chatMessage.ChatId = nil
 		chatMessage.ReceiverId = &userId
 		chat.ConnectionManager.SendMessage(chatMessage, journey.UserId, false)

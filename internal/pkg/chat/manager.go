@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/lib/pq"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/types"
+	"time"
 )
 
 var (
@@ -41,6 +42,7 @@ func (manager *Manager) SendMessage(message *types.ChatMessage, userId int, read
 	}
 
 	message.SenderId = &userId
+	message.Time = int(time.Now().UnixNano() / int64(time.Millisecond))
 
 	readBy := pq.Int64Array{}
 	if readBySender {
@@ -53,9 +55,11 @@ func (manager *Manager) SendMessage(message *types.ChatMessage, userId int, read
 		return -1, err
 	}
 
-	var receivers *pq.Int64Array
+	message.Id = &id
+
+	var receivers pq.Int64Array
 	if message.ReceiverId != nil {
-		receivers = &pq.Int64Array{int64(*message.ReceiverId)}
+		receivers = pq.Int64Array{int64(*message.ReceiverId)}
 		message.ReceiverId = nil
 	} else {
 		receivers, err = getParticipantsOfChatRoomAsUser(*message.ChatId, userId)
@@ -65,7 +69,8 @@ func (manager *Manager) SendMessage(message *types.ChatMessage, userId int, read
 		return id, nil
 	}
 
-	for receiver := range *receivers {
+	for _, receiver := range receivers {
+		receiver := int(receiver)
 		if receiver == *message.SenderId {
 			continue
 		}
@@ -101,7 +106,7 @@ func (manager *Manager) AddUserToChatRoom(information *types.ChatRoomAddUserInfo
 		return err
 	}
 
-	if !sliceutil.Contains(participants, userId) {
+	if !sliceutil.Contains(participants, int64(userId)) {
 		return NoPermission
 	}
 
@@ -137,6 +142,6 @@ func (manager *Manager) addChatIdOfPrivateChatToMessageObject(message *types.Cha
 		}
 	}
 
-	*message.ChatId = chatId
+	message.ChatId = &chatId
 	return nil
 }

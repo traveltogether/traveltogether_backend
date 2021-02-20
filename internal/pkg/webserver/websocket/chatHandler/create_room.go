@@ -12,7 +12,7 @@ import (
 
 func HandleCreateRoom(conn *websocket.Conn, user *types.User, packet *types.ChatRoomCreatePacket) error {
 	finalParticipants := packet.Information.Participants
-	if !sliceutil.Contains(packet.Information.Participants, user.Id) {
+	if !sliceutil.Contains(packet.Information.Participants, int64(user.Id)) {
 		finalParticipants = append(packet.Information.Participants, int64(user.Id))
 	}
 

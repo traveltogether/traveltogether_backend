@@ -260,7 +260,6 @@ func CancelAttendanceAtJourney(journey *types.Journey, user *types.User) error {
 	}
 
 	chatMessage := &types.ChatMessage{}
-	chatMessage.Time = int(time.Now().UnixNano() / int64(time.Millisecond))
 	chatMessage.Message = fmt.Sprintf("User %s left the journey.", user.Username)
 	chatMessage.SenderId = &user.Id
 	chatMessage.ReceiverId = &journey.UserId
