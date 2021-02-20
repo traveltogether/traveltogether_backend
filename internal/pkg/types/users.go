@@ -13,7 +13,7 @@ var (
 type User struct {
 	Id                   int     `json:"id" db:"id"`
 	Username             string  `json:"username" db:"username"`
-	MailAddress          string  `json:"mail" db:"mail"`
+	MailAddress          *string `json:"mail,omitempty" db:"mail"`
 	FirstName            *string `json:"first_name,omitempty" db:"first_name"`
 	ProfileImageAsBase64 *string `json:"profile_image,omitempty" db:"profile_image"`
 	Disabilities         *string `json:"disabilities,omitempty" db:"disabilities"`

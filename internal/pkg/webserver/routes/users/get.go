@@ -20,6 +20,7 @@ func Get() gin.HandlerFunc {
 		}
 
 		requestedUser, err := users.GetUserById(id)
+
 		if err != nil {
 			if err == users.UserNotFound {
 				ctx.AbortWithStatusJSON(http.StatusNotFound, errors.NotFound)
@@ -30,6 +31,7 @@ func Get() gin.HandlerFunc {
 			return
 		}
 
+		requestedUser.MailAddress = nil
 		ctx.JSON(http.StatusOK, requestedUser)
 	}
 }
