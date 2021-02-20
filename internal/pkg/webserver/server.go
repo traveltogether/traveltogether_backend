@@ -72,4 +72,5 @@ func initUserRoutes(router *gin.Engine, authHandler gin.HandlerFunc) {
 	usersIdGroup.PUT("/disabilities", users.ChangeDisabilities())
 	usersIdGroup.PUT("/profile-image", users.ChangeProfileImage())
 	usersIdGroup.PUT("/username", users.ChangeUsername())
+	usersIdGroup.PUT("/firstname", users.ChangeFirstname())
 }

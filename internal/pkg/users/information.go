@@ -49,6 +49,17 @@ func ChangeDisabilities(user *types.User, newDisabilities string) error {
 	return nil
 }
 
+func ChangeFirstname(user *types.User, newFirstname string) error {
+	err := database.PrepareAsync(database.DefaultTimeout, "UPDATE users SET first_name = $1 WHERE id = $2",
+		newFirstname, user.Id)
+	if err != nil {
+		return err
+	}
+
+	user.FirstName = &newFirstname
+	return nil
+}
+
 func ChangeMailAddress(user *types.User, newMailAddress string) error {
 	slice, err := database.QueryAsync(database.DefaultTimeout, types.MailInformationType,
 		"SELECT mail FROM users WHERE mail = $1", newMailAddress)
@@ -67,7 +78,7 @@ func ChangeMailAddress(user *types.User, newMailAddress string) error {
 		return err
 	}
 
-	user.MailAddress = newMailAddress
+	user.MailAddress = &newMailAddress
 	return nil
 }
 
