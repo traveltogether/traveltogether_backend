@@ -10,9 +10,15 @@ import (
 
 const authKeyHeader = "X-Auth-Key"
 
-func AuthenticationHandler() gin.HandlerFunc {
+func AuthenticationHandler(websocket bool) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		authKey := ctx.Request.Header.Get(authKeyHeader)
+		var authKey string
+		if !websocket {
+			authKey = ctx.Request.Header.Get(authKeyHeader)
+		} else {
+			authKey = ctx.Request.URL.Query().Get("token")
+		}
+
 		if authKey == "" {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, errors.MissingAuthenticationInformation)
 			return
@@ -25,7 +31,7 @@ func AuthenticationHandler() gin.HandlerFunc {
 			} else {
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
 
-				general.Log.Error(err)
+				general.Log.Error("Failed to get authentication information of user: ", err)
 			}
 			return
 		}

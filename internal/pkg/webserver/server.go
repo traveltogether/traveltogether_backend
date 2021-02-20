@@ -19,14 +19,16 @@ func Run(hostname string, port int) {
 	router := gin.New()
 	router.Use(ginlogrus.Logger(general.Log), gin.Recovery())
 
-	authHandler := handler.AuthenticationHandler()
+	authHandler := handler.AuthenticationHandler(false)
 
 	router.GET("/", func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, gin.H{"name": "travel together API", "version": "1.2.0"})
+		ctx.JSON(http.StatusOK, gin.H{"name": "travel together API", "version": "1.2.1"})
 	})
-	router.GET("/websocket", func(ctx *gin.Context) {
-		websocket.HandleWebsocket(ctx.Writer, ctx.Request, ctx.MustGet("user").(*types.User))
-	}, authHandler)
+	router.GET("/websocket", handler.AuthenticationHandler(true),
+		func(ctx *gin.Context) {
+			websocket.HandleWebsocket(ctx.Writer, ctx.Request, ctx.MustGet("user").(*types.User))
+		},
+	)
 
 	initJourneyRoutes(router, authHandler)
 	initAuthRoutes(router, authHandler)

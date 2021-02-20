@@ -1,6 +1,6 @@
 = API Documentation of the travel together backend
 
-Current documented version: `1.2.0`. The version live may be newer.
+Current documented version: `1.2.1`. The version live may be newer.
 
 API Base URL: `https://api.traveltogether.eu/v1`
 
@@ -767,6 +767,11 @@ Errors::::
 IMPORTANT: The websocket is responsible for instant communication via the chat module. All messages are send as a TextMessage (id: 1), whilst closing the socket is supported by using the CloseMessage (id: 8). Ping (id: 9) and Pong (id: 10) are supported as well.
 
 NOTE: The communication is based on a Packet-based design choice. Nearly all requests and responses are presented as a Packet, while simple responses such as "ok" or errors are simple JSON strings. All packets are JSON strings and dividing into two parts (type and information/details, ...)
+
+IMPORTANT: Authentication does not work via headers. The API key must be sent as query paramenter `token`. +
+Example URL: `wss://api.traveltogether.eu/v1/websocket?token=e9cd9ca4-df64-4e3c-8667-a33e2fdaacb9`
+
+
 
 === ChatMessagePacket
 Description::

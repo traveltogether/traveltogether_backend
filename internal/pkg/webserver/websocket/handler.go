@@ -15,6 +15,12 @@ import (
 var websocketUpgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+	Error: func(w http.ResponseWriter, r *http.Request, status int, reason error) {
+		general.Log.Error("General failure in websocket: ", reason)
+	},
 }
 
 func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *types.User) {

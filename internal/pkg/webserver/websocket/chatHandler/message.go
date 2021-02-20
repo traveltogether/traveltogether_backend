@@ -5,6 +5,7 @@ import (
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/chat"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/general"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/types"
+	"github.com/traveltogether/traveltogether_backend/internal/pkg/users"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/errors"
 )
 
@@ -15,6 +16,8 @@ func HandleMessagePacket(conn *websocket.Conn, user *types.User, packet *types.C
 			return conn.WriteJSON(errors.RoomDoesNotExist)
 		} else if err == chat.NotInRoom {
 			return conn.WriteJSON(errors.NotInRoom)
+		} else if err == users.UserNotFound {
+			return conn.WriteJSON(errors.UserNotFound)
 		} else {
 			general.Log.Error("Failed to send response to websocket", err)
 			if id == -1 {
