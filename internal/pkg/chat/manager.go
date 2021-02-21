@@ -5,6 +5,7 @@ import (
 	"github.com/forestgiant/sliceutil"
 	"github.com/gorilla/websocket"
 	"github.com/lib/pq"
+	"github.com/traveltogether/traveltogether_backend/internal/pkg/general"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/types"
 	"time"
 )
@@ -83,12 +84,15 @@ func (manager *Manager) SendMessage(message *types.ChatMessage, userId int, read
 			err = connection.WriteJSON(packet)
 
 			if err != nil {
-				return id, err
+				general.Log.WithError(err).WithField("userId", receiver).WithTime(time.Now()).
+					Error("failed to send message to user ")
+				continue
 			}
 
 			err = setMessageReadInDatabase(id, receiver)
 			if err != nil {
-				return id, err
+				general.Log.WithError(err).WithField("userId", receiver).WithTime(time.Now()).
+					Error("failed to set message read in database ")
 			}
 		}
 	}

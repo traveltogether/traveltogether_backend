@@ -26,7 +26,7 @@ func Run(hostname string, port int) {
 	})
 	router.GET("/websocket", handler.AuthenticationHandler(true),
 		func(ctx *gin.Context) {
-			websocket.HandleWebsocket(ctx.Writer, ctx.Request, ctx.MustGet("user").(*types.User))
+			websocket.HandleWebsocket(ctx.Writer, ctx.Request, ctx.MustGet("user").(*types.User), ctx.ClientIP())
 		},
 	)
 

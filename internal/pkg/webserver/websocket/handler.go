@@ -10,6 +10,7 @@ import (
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/websocket/chatHandler"
 	"net/http"
 	"strings"
+	"time"
 )
 
 var websocketUpgrader = websocket.Upgrader{
@@ -23,7 +24,7 @@ var websocketUpgrader = websocket.Upgrader{
 	},
 }
 
-func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *types.User) {
+func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *types.User, clientIP string) {
 	connection, err := websocketUpgrader.Upgrade(writer, request, nil)
 	if err != nil {
 		writer.WriteHeader(500)
@@ -66,6 +67,15 @@ func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *ty
 
 				continue
 			}
+
+			requestedPacket := messageMap["type"]
+			if requestedPacket == "" {
+				requestedPacket = "unknown"
+			}
+
+			general.Log.WithField("clientIP", clientIP).
+				WithField("userId", user.Id).WithTime(time.Now()).
+				WithField("requestedResource", requestedPacket).Info("websocket request ")
 
 			switch strings.ToLower(messageMap["type"].(string)) {
 			case strings.ToLower(types.ChatMessagePacketName):
