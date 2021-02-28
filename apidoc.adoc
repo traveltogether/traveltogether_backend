@@ -370,6 +370,7 @@ Request body::
 * time (in milliseconds) [int]
 * time_is_departure (Is the given time the departure? Must be the negated value of `time_is_arrival`) [bool]
 * time_is_arrival (Is the given time the departure? Must be the negated value of `time_is_departure`) [bool]
+* note (optional; Some information about this specific journey) [string]
 Example response::
 200:
 [source,json]
@@ -391,7 +392,8 @@ Example response::
   "time_is_departure": true,
   "time_is_arrival": false,
   "open_for_requests": true,
-  "cancelled_by_host": false
+  "cancelled_by_host": false,
+  "note": "I prefer public transport"
 }
 ----
 Errors::::
@@ -447,7 +449,8 @@ Example response::
   "cancelled_by_host_reason": "I'm sorry, but my car is broken.",
   "cancelled_by_attendee_ids": [
     6
-  ]
+  ],
+  "note": "I prefer public transport"
 }
 ----
 
