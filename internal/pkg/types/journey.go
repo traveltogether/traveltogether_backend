@@ -30,7 +30,7 @@ type Journey struct {
 	AcceptedUserIds               *pq.Int64Array `json:"accepted_user_ids,omitempty" db:"accepted_user_ids"`
 	DeclinedUserIds               *pq.Int64Array `json:"declined_user_ids,omitempty" db:"declined_user_ids"`
 	CancelledByHost               bool           `json:"cancelled_by_host" db:"cancelled_by_host"`
-	CancelledByHostReason         *string        `json:"cancelled_by_host_reason" db:"cancelled_by_host_reason"`
+	CancelledByHostReason         *string        `json:"cancelled_by_host_reason,omitempty" db:"cancelled_by_host_reason"`
 	CancelledByAttendeeIds        *pq.Int64Array `json:"cancelled_by_attendee_ids,omitempty" db:"cancelled_by_attendee_ids"`
 	Note                          *string        `json:"note,omitempty" db:"note"`
 }
