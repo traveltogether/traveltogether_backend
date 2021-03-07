@@ -23,5 +23,9 @@ func IsNameValid(name string) (bool, string) {
 		return false, ""
 	}
 
+	if strings.Contains(name, "@") {
+		return false, ""
+	}
+
 	return true, name
 }
