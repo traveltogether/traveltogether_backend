@@ -8,7 +8,8 @@ import (
 )
 
 var (
-	NotFound = errors.New("journey not found")
+	NotFound                          = errors.New("journey not found")
+	DeletionNotAvailableDueToRequests = errors.New("deletion not available due to requests")
 )
 
 func InsertJourneyToDatabase(journey *types.Journey) error {
@@ -86,5 +87,19 @@ func GetJourneysFromDatabaseFilteredBy(filters map[string]interface{}) ([]*types
 }
 
 func DeleteJourneyFromDatabase(id int) error {
-	return database.PrepareAsync(database.DefaultTimeout, "DELETE FROM journeys WHERE id = $1", id)
+	slice, err := database.QueryAsync(database.DefaultTimeout, types.IdInformationType,
+		"DELETE FROM journeys WHERE id = $1 "+
+			"AND (pending_user_ids IS NULL OR pending_user_ids = '{}') "+
+			"AND (accepted_user_ids IS NULL OR accepted_user_ids = '{}') "+
+			"RETURNING id", id)
+
+	if err != nil {
+		return err
+	}
+
+	if len(slice.([]*types.IdInformation)) == 0 {
+		return DeletionNotAvailableDueToRequests
+	}
+
+	return nil
 }

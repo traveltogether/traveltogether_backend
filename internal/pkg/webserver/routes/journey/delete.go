@@ -21,6 +21,11 @@ func Delete() gin.HandlerFunc {
 
 		err := journey.DeleteJourneyFromDatabase(*journeyToDelete.Id)
 		if err != nil {
+			if err == journey.DeletionNotAvailableDueToRequests {
+				ctx.AbortWithStatusJSON(http.StatusConflict, errors.DeletionNotAvailableDueToRequests)
+				return
+			}
+
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, errors.InternalError)
 			general.Log.Error("Failed to delete journey: ", err)
 			return
