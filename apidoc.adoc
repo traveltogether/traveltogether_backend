@@ -485,13 +485,14 @@ Example response::
 Errors::::
 400: Bad/Malformed request +
 401: Invalid session +
-*403: Forbidden / permission denied* +
+403: Forbidden / permission denied +
 404: Not found +
+*409: Deletion not available due to requests* +
 500: Internal server error
 [source,json]
 ----
 {
-    "error": "forbidden"
+    "error": "deletion_not_available_due_to_requests"
 }
 ----
 
@@ -756,7 +757,7 @@ Errors::::
 400: Bad/Malformed request +
 401: Invalid session +
 404: Not found +
-409: *User has not been accepted* +
+409: *User has not been accepted* _or_ journey has (already) been cancelled +
 422: Requesting own journey +
 500: Internal server error
 [source,json]
