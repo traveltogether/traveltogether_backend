@@ -1,6 +1,6 @@
 = API Documentation of the travel together backend
 
-Current documented version: `1.2.2`. The version live may be newer.
+Current documented version: `1.2.3`. The version live may be newer.
 
 API Base URL: `https://api.traveltogether.eu/v1`
 
@@ -768,7 +768,8 @@ Errors::::
 ----
 
 == Websocket
-IMPORTANT: The websocket is responsible for instant communication via the chat module. All messages are send as a TextMessage (id: 1), whilst closing the socket is supported by using the CloseMessage (id: 8). Ping (id: 9) and Pong (id: 10) are supported as well.
+IMPORTANT: The websocket is responsible for instant communication via the chat module. All messages are send as a TextMessage (id: 1), whilst closing the socket is supported by using the CloseMessage (id: 8). Ping (id: 9) and Pong (id: 10) are supported as well. +
+This websocket does time out 24 hours after the last packet has been sent. Ensure to send a PingMessage constantly.
 
 NOTE: The communication is based on a Packet-based design choice. Nearly all requests and responses are presented as a Packet, while simple responses such as "ok" or errors are simple JSON strings. All packets are JSON strings and dividing into two parts (type and information/details, ...)
 

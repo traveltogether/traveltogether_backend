@@ -39,6 +39,7 @@ func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *ty
 
 	loop:
 		for {
+			connection.SetReadDeadline(time.Now().Add(time.Hour * 24))
 			messageType, message, err := connection.ReadMessage()
 			if err != nil {
 				general.Log.Error("Failed to read websocket message: ", err)
