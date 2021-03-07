@@ -31,6 +31,11 @@ func Cancel() gin.HandlerFunc {
 				return
 			}
 		} else {
+			if requestedJourney.CancelledByHost {
+				ctx.AbortWithStatusJSON(http.StatusConflict, errors.JourneyHasBeenCancelled)
+				return
+			}
+
 			defer ctx.Request.Body.Close()
 			var elements map[string]interface{}
 
