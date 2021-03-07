@@ -913,6 +913,7 @@ Create a chat room/group
 Request body::
 * type = "ChatUnreadMessagesPacket"
 * chat_messages = [{id int, chat_id int, sender_id int, message string, time int}] +
+chat_messages must not be set in a request.
 Example response::
 
 [source,json]
@@ -952,7 +953,9 @@ Description::
 Get messages from a specific chat room/group
 Request body::
 * type = "ChatRoomMessagesPacket"
+* chat_id int
 * chat_messages = [{id int, chat_id int, sender_id int, message string, time int}] +
+chat_messages must not be set in a request.
 Example response::
 
 [source,json]
