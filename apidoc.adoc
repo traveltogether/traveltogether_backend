@@ -958,7 +958,7 @@ Example response::
 [source,json]
 ----
 {
-  "type": "ChatUnreadMessagesPacket",
+  "type": "ChatRoomMessagesPacket",
   "chat_id": 1,
   "chat_messages": [
       {
