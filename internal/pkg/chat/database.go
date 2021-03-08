@@ -291,7 +291,7 @@ func getMessagesOfChatRoomFromDatabase(chatId int, userId int) ([]*types.ChatMes
 				"AND chat_messages.chat_id = $2 "+
 				"AND chat_rooms.participants IS NOT NULL "+
 				"AND $3 = ANY(chat_rooms.participants)",
-			userId, userId)
+			userId, chatId, userId)
 
 		if err != nil {
 			return nil, err
