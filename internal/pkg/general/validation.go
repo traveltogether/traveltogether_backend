@@ -17,13 +17,13 @@ func IsEmailValid(mail string) (bool, string) {
 	return mailRegex.MatchString(mail), mail
 }
 
-func IsNameValid(name string) (bool, string) {
+func IsNameValid(name string, checkForAt bool) (bool, string) {
 	name = strings.TrimSpace(name)
 	if len(name) == 0 {
 		return false, ""
 	}
 
-	if strings.Contains(name, "@") {
+	if checkForAt && strings.Contains(name, "@") {
 		return false, ""
 	}
 

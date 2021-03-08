@@ -35,7 +35,7 @@ func GetUserByAuthenticationKey(key string) (*types.User, error) {
 }
 
 func Login(nameOrMail string, password string) (*types.AuthenticationInformation, error) {
-	ok, nameOrMail := general.IsNameValid(nameOrMail)
+	ok, nameOrMail := general.IsNameValid(nameOrMail, false)
 	if !ok {
 		return nil, InvalidMailAddressOrUsername
 	}
@@ -76,7 +76,7 @@ func Register(name string, mailAddress string, password string, firstname *strin
 		return nil, InvalidMailAddressOrUsername
 	}
 
-	ok, name = general.IsNameValid(name)
+	ok, name = general.IsNameValid(name, true)
 	if !ok {
 		return nil, InvalidMailAddressOrUsername
 	}
