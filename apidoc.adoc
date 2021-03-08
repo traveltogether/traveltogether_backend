@@ -1,6 +1,6 @@
 = API Documentation of the travel together backend
 
-Current documented version: `1.2.3`. The version live may be newer.
+Current documented version: `1.2.4`. The version live may be newer.
 
 API Base URL: `https://api.traveltogether.eu/v1`
 
@@ -784,7 +784,7 @@ Chat message
 Request/Response body::
 * type = "ChatMessagePacket"
 * chat_message = {id int, chat_id int, sender_id int, receiver_id int, message string, time int} +
-Sent as request, only chat_id/receiver_id (for group communication: receiver_id is not possible), message and time (as milliseconds) are required. Other fields will be set in the response.
+Sent as request, only chat_id/receiver_id (for group communication: receiver_id is not possible), message are required. Other fields will be set in the response.
 Example response::
 [source,json]
 ----
@@ -899,6 +899,7 @@ Example response::
 
 Errors::::
 *Private chat can only contain two users* +
+Private chat already exists +
 User not found +
 Internal server error
 [source,json]
