@@ -14,6 +14,7 @@ var (
 	RoomDoesNotExist                    = errors.New("room does not exist")
 	RoomIsNotAGroup                     = errors.New("room is not a group")
 	PrivateChatCanOnlyContainTwoUsers   = errors.New("private chat can only contain two users")
+	PrivateChatAlreadyExists            = errors.New("private chat already exists")
 )
 
 func saveMessageIntoDatabase(message string, chatId int, senderId int, readBy *pq.Int64Array, time int) (int, error) {
@@ -57,8 +58,21 @@ func setMessageReadInDatabase(messageId int, userId int) error {
 }
 
 func createChatRoomInDatabase(participants *pq.Int64Array, group bool) (int, error) {
-	if !group && len(*participants) > 2 {
-		return -1, PrivateChatCanOnlyContainTwoUsers
+	if !group {
+		if len(*participants) > 2 {
+			return -1, PrivateChatCanOnlyContainTwoUsers
+		} else if len(*participants) == 2 {
+			array := []int64(*participants)
+			privatChatId, err := getPrivateChatIdOfUsersFromDatabase(int(array[0]), int(array[1]))
+
+			if err != nil {
+				return -1, err
+			}
+
+			if privatChatId != -1 {
+				return -1, PrivateChatAlreadyExists
+			}
+		}
 	}
 
 	for _, userId := range *participants {

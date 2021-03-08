@@ -43,16 +43,16 @@ func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *ty
 			messageType, message, err := connection.ReadMessage()
 			if err != nil {
 				general.Log.Error("Failed to read websocket message: ", err)
-				break
+				break loop
 			}
 
 			if messageType == websocket.CloseMessage {
-				break
+				break loop
 			} else if messageType == websocket.PingMessage {
 				err = connection.WriteMessage(websocket.PongMessage, message)
 				if err != nil {
 					general.Log.Error("Failed to send pong to websocket: ", err)
-					break
+					break loop
 				}
 			}
 
@@ -63,10 +63,10 @@ func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *ty
 				err = connection.WriteJSON(errors.InvalidRequest)
 				if err != nil {
 					general.Log.Error("Failed to send response to websocket: ", err)
-					break
+					break loop
 				}
 
-				continue
+				continue loop
 			}
 
 			requestedPacket := messageMap["type"]
@@ -286,7 +286,7 @@ func HandleWebsocket(writer http.ResponseWriter, request *http.Request, user *ty
 				err = connection.WriteJSON(errors.InvalidRequest)
 				if err != nil {
 					general.Log.Error("Failed to send response to websocket: ", err)
-					break
+					break loop
 				}
 			}
 		}

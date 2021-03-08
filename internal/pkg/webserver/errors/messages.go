@@ -29,4 +29,5 @@ var (
 	UserNotFound                          = gin.H{"error": "user_not_found"}
 	PrivateChatCanOnlyContainTwoUsers     = gin.H{"error": "private_chat_can_only_contain_2_users"}
 	DeletionNotAvailableDueToRequests     = gin.H{"error": "deletion_not_available_due_to_requests"}
+	PrivateChatAlreadyExists              = gin.H{"error": "privat_chat_already_exists"}
 )
