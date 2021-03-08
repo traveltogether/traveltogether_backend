@@ -771,7 +771,7 @@ Errors::::
 IMPORTANT: The websocket is responsible for instant communication via the chat module. All messages are send as a TextMessage (id: 1), whilst closing the socket is supported by using the CloseMessage (id: 8). Ping (id: 9) and Pong (id: 10) are supported as well. +
 This websocket does time out 24 hours after the last packet has been sent. Ensure to send a PingMessage constantly.
 
-NOTE: The communication is based on a Packet-based design choice. Nearly all requests and responses are presented as a Packet, while simple responses such as "ok" or errors are simple JSON strings. All packets are JSON strings and dividing into two parts (type and information/details, ...)
+NOTE: The communication is based on a Packet-based design choice. Nearly all requests and responses are presented as a Packet, while simple responses such as "ok" or errors are simple JSON strings. All packets are JSON strings and dividing into two parts (type and information/details, ...).
 
 IMPORTANT: Authentication does not work via headers. The API key must be sent as query paramenter `token`. +
 Example URL: `wss://api.traveltogether.eu/v1/websocket?token=e9cd9ca4-df64-4e3c-8667-a33e2fdaacb9`
@@ -781,7 +781,7 @@ Example URL: `wss://api.traveltogether.eu/v1/websocket?token=e9cd9ca4-df64-4e3c-
 === ChatMessagePacket
 Description::
 Chat message
-Request body::
+Request/Response body::
 * type = "ChatMessagePacket"
 * chat_message = {id int, chat_id int, sender_id int, receiver_id int, message string, time int} +
 Sent as request, only chat_id/receiver_id (for group communication: receiver_id is not possible), message and time (as milliseconds) are required. Other fields will be set in the response.
@@ -815,7 +815,7 @@ Internal server error
 === ChatRoomAddUserPacket
 Description::
 Add user to a chat room/group
-Request body::
+Request/Response body::
 * type = "ChatRoomAddUserPacket"
 * information = {user_id int, chat_id int} +
 user_id describes the user to add in the group chat_id.
@@ -847,7 +847,7 @@ Internal server error
 === ChatRoomLeaveUserPacket
 Description::
 Leave a chat room/group
-Request body::
+Request/Response body::
 * type = "ChatRoomAddUserPacket"
 * information = {chat_id int} +
 Example response::
@@ -876,7 +876,7 @@ Internal server error
 === ChatRoomCreatePacket
 Description::
 Create a chat room/group
-Request body::
+Request/Response body::
 * type = "ChatRoomCreatePacket"
 * information = {id int, participants int[], group bool} +
 participants is an array of user ids, which should be added to the room. Group defines if the room is a group or not.
@@ -911,7 +911,7 @@ Internal server error
 === ChatUnreadMessagesPacket
 Description::
 Create a chat room/group
-Request body::
+Request/Response body::
 * type = "ChatUnreadMessagesPacket"
 * chat_messages = [{id int, chat_id int, sender_id int, message string, time int}] +
 chat_messages must not be set in a request.
@@ -952,7 +952,7 @@ Errors::::
 === ChatRoomMessagesPacket
 Description::
 Get messages from a specific chat room/group
-Request body::
+Request/Response body::
 * type = "ChatRoomMessagesPacket"
 * chat_id int
 * chat_messages = [{id int, chat_id int, sender_id int, message string, time int}] +
@@ -995,7 +995,7 @@ Errors::::
 === ChatRoomsPacket
 Description::
 Get all chat rooms which the user has joined
-Request body::
+Request/Response body::
 * type = "ChatRoomsPacket"
 * chat_rooms = [{id int, participants int[], group bool}] +
 chat_rooms must not be set in a request.
