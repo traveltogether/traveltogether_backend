@@ -848,7 +848,7 @@ Internal server error
 Description::
 Leave a chat room/group
 Request/Response body::
-* type = "ChatRoomAddUserPacket"
+* type = "ChatRoomLeaveUserPacket"
 * information = {chat_id int} +
 Example response::
 [source,json]

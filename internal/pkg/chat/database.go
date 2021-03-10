@@ -288,10 +288,11 @@ func getMessagesOfChatRoomFromDatabase(chatId int, userId int) ([]*types.ChatMes
 				"SET read_by = array_append(read_by, $1) "+
 				"FROM chat_rooms "+
 				"WHERE chat_messages.chat_id = chat_rooms.id "+
-				"AND chat_messages.chat_id = $2 "+
+				"AND NOT $2 = ANY(chat_messages.read_by) "+
+				"AND chat_messages.chat_id = $3 "+
 				"AND chat_rooms.participants IS NOT NULL "+
-				"AND $3 = ANY(chat_rooms.participants)",
-			userId, chatId, userId)
+				"AND $4 = ANY(chat_rooms.participants)",
+			userId, userId, chatId, userId)
 
 		if err != nil {
 			return nil, err
