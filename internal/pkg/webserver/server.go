@@ -22,7 +22,7 @@ func Run(hostname string, port int) {
 	authHandler := handler.AuthenticationHandler(false)
 
 	router.GET("/", func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, gin.H{"name": "travel together API", "version": "1.2.5"})
+		ctx.JSON(http.StatusOK, gin.H{"name": "travel together API", "version": "1.2.6"})
 	})
 	router.GET("/websocket", handler.AuthenticationHandler(true),
 		func(ctx *gin.Context) {

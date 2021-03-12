@@ -1,6 +1,6 @@
 = API Documentation of the travel together backend
 
-Current documented version: `1.2.5`. The version live may be newer.
+Current documented version: `1.2.6`. The version live may be newer.
 
 API Base URL: `https://api.traveltogether.eu/v1`
 
@@ -23,7 +23,7 @@ Example response::
 ----
 {
     "name": "travel together API",
-    "version": "1.2.5"
+    "version": "1.2.6"
 }
 ----
 
@@ -366,8 +366,8 @@ Query params:: none
 Request body::
 * request (Is this journey a request? Must be the negated value of `offer`) [bool]
 * offer (Is this journey a offer? Must be the negated value of `request`) [bool]
-* start_lat_long (start latitude and longitude separated by `;`) [string]
-* end_lat_long (start latitude and longitude separated by `;`) [string]
+* start_lat_long (start latitude and longitude separated by `;`, must not be end_lat_long or resolve to end address) [string]
+* end_lat_long (start latitude and longitude separated by `;`, must not be start_lat_long or resolve to start address) [string]
 * time (in milliseconds) [int]
 * time_is_departure (Is the given time the departure? Must be the negated value of `time_is_arrival`) [bool]
 * time_is_arrival (Is the given time the departure? Must be the negated value of `time_is_departure`) [bool]

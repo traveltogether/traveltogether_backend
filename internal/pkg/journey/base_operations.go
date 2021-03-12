@@ -32,6 +32,10 @@ func CreateJourney(httpBody []byte, user *types.User) (*types.Journey, error) {
 		return nil, InvalidDetails
 	}
 
+	if journey.StartLatLong == journey.EndLatLong {
+		return nil, InvalidDetails
+	}
+
 	if (journey.TimeIsArrival && journey.TimeIsDeparture) || (!journey.TimeIsArrival && !journey.TimeIsDeparture) {
 		return nil, InvalidDetails
 	}
@@ -83,6 +87,10 @@ func CreateJourney(httpBody []byte, user *types.User) (*types.Journey, error) {
 	endAddressString := fmt.Sprintf("%s %s, %s %s", endAddress.Road, endAddress.HouseNumber,
 		endAddress.Postcode, endAddress.City)
 	journey.EndAddressString = &endAddressString
+
+	if startAddressString == endAddressString {
+		return nil, InvalidDetails
+	}
 
 	approximateStartAddressInformation := &types.AddressInformation{
 		Latitude:  startLat,
