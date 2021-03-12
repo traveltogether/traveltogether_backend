@@ -1,6 +1,6 @@
 = API Documentation of the travel together backend
 
-Current documented version: `1.2.4`. The version live may be newer.
+Current documented version: `1.2.5`. The version live may be newer.
 
 API Base URL: `https://api.traveltogether.eu/v1`
 
@@ -23,7 +23,7 @@ Example response::
 ----
 {
     "name": "travel together API",
-    "version": "1.1.2"
+    "version": "1.2.5"
 }
 ----
 
@@ -303,6 +303,7 @@ Query params::
 * openForRequests (optional) [bool]
 * offer (Filter for offers; optional) [bool]
 * request (Filter for requests; optional) [bool]
+* non-expired (Filter to display non-expired requests only; optional) [bool]
 Request body:: none
 Example response::
 200: (Note, that `start_*`, `end_*` as well as `*_ids` may be null depending on the users state. the user with id `user_id` can see everything, while accepted/denied/pending users only see the state where they are in [and only their ID]. Accepted users can see the real address information as well.)

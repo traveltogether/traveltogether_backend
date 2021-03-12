@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/database"
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/types"
+	"strconv"
+	"time"
 )
 
 var (
@@ -64,10 +66,11 @@ func GetAllJourneysFromDatabase() ([]*types.Journey, error) {
 	return slice.([]*types.Journey), nil
 }
 
-func GetJourneysFromDatabaseFilteredBy(filters map[string]interface{}) ([]*types.Journey, error) {
+func GetJourneysFromDatabaseFilteredBy(filters map[string]interface{}, nonExpiredFilter bool) ([]*types.Journey, error) {
 	query := "SELECT * FROM journeys"
-	values := make([]interface{}, 0, len(filters))
-	if len(filters) != 0 {
+	filterLength := len(filters)
+	values := make([]interface{}, 0, filterLength)
+	if filterLength != 0 {
 		query += " WHERE "
 		index := 1
 		for key, value := range filters {
@@ -76,6 +79,14 @@ func GetJourneysFromDatabaseFilteredBy(filters map[string]interface{}) ([]*types
 			index += 1
 		}
 		query = query[:len(query)-5]
+	}
+	if nonExpiredFilter {
+		if filterLength == 0 {
+			query += " WHERE "
+		} else {
+			query += " AND "
+		}
+		query += " time_value > " + strconv.Itoa(int(time.Now().UnixNano()/int64(time.Millisecond)))
 	}
 
 	slice, err := database.QueryAsync(database.DefaultTimeout, types.JourneyType, query, values...)

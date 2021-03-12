@@ -10,6 +10,7 @@ import (
 	"github.com/traveltogether/traveltogether_backend/internal/pkg/webserver/types"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 var allowedKeys = map[string]string{"openForRequests": "open_for_requests", "request": "request", "offer": "offer"}
@@ -37,11 +38,13 @@ func List() gin.HandlerFunc {
 					filters[name] = value
 				}
 			}
-			if len(filters) == 0 {
-				journeyList, err = journey.GetAllJourneysFromDatabase()
-			} else {
-				journeyList, err = journey.GetJourneysFromDatabaseFilteredBy(filters)
+
+			nonExpiredFilter := false
+			if nonExpired := ctx.Request.URL.Query().Get("non-expired"); strings.ToLower(nonExpired) == "true" {
+				nonExpiredFilter = true
 			}
+
+			journeyList, err = journey.GetJourneysFromDatabaseFilteredBy(filters, nonExpiredFilter)
 		}
 
 		if err != nil {
