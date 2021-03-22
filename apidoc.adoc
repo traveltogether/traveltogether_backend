@@ -1,0 +1,1040 @@
+= API Documentation of the travel together backend
+
+Current documented version: `1.2.6`. The version live may be newer.
+
+API Base URL: `https://api.traveltogether.eu/v1`
+
+NOTE: All request bodies have to be provided as JSON formatted string. +
+Authentication information must be provided by using the header `X-Auth-Key` using the `session_key` returned on login/register.
+
+IMPORTANT: Not all errors are listed with their example response. Some errors may occur that you have never seen before. Watch out and don't be scared.
+
+== General
+
+=== GET `/`
+Description::
+You want to know who you are talking to, right?
+Request params:: none
+Query params:: none
+Request body:: none
+Example response::
+200:
+[source,json]
+----
+{
+    "name": "travel together API",
+    "version": "1.2.6"
+}
+----
+
+== Authentication
+=== POST `/auth/login`
+Description::
+Login at travel together
+Authentication required:: no
+Request params:: none
+Query params:: none
+Request body::
+* username_or_mail (username or mail address) [string]
+* password [string]
+Example response::
+200:
+[source,json]
+----
+{
+    "id": 1,
+    "username": "the_user_1",
+    "session_key": "e9cd9ca4-df64-4e3c-8667-a33e2fdaacb9"
+}
+----
+Errors::
+*400:* Bad/Malformed request _or_ *incorrect login data* _or_ invalid mail address or username +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "invalid_login_data"
+}
+----
+
+=== POST `/auth/register`
+Description::
+Register at travel together
+Authentication required:: no
+Request params:: none
+Query params:: none
+Request body::
+* username [string]
+* mail [string]
+* password [string]
+* first_name [string]
+* profile_image (see User section for more information; not required) [string]
+* disabilities (description of user's disabilities; not required) [string]
+Example response::
+200:
+[source,json]
+----
+{
+    "id": 1,
+    "username": "the_user_1",
+    "session_key": "e9cd9ca4-df64-4e3c-8667-a33e2fdaacb9"
+}
+----
+Errors::
+*400:* Bad/Malformed request _or_ *user already exists* _or_ invalid mail address or username +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "user_already_exists"
+}
+----
+
+=== PUT `/auth/mail`
+Description::
+Change the mail address of the current user
+Authentication required:: yes
+Request params:: none
+Query params:: none
+Request body::
+* mail [string]
+Example response::
+200:
+[source,json]
+----
+{
+    "status": "changed"
+}
+----
+Errors::
+400: Bad/Malformed request +
+*409: Mail address is already in use* +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "mail_already_in_use"
+}
+----
+
+=== PUT `/auth/password`
+Description::
+Change the password of the current user
+Authentication required:: yes
+Request params:: none
+Query params:: none
+Request body::
+* old_password [string]
+* new_password [string]
+Example response::
+200:
+[source,json]
+----
+{
+    "status": "changed"
+}
+----
+Errors::
+*400: Bad/Malformed request* +
+403: Old password is incorrect +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "invalid_request"
+}
+----
+
+== Users
+NOTE: `id` can be a numeric value or the string `me` for the current user +
+`profile_image` describes the base64 encoded bytes of an image
+
+IMPORTANT: All `/users` routes require authentication.
+
+=== GET `/users/{id}`
+Description::
+Get information of the current user
+Request params:: none
+Query params:: none
+Request body:: none
+Example response::
+200: (mail address only visible for me/own id)
+[source,json]
+----
+{
+    "id": "1",
+    "username": "the_user_1",
+    "first_name": "User",
+    "mail":  "mail@user.one",
+    "profile_image": "iVBORw0KGgoAAAANSUhEUgAAAH4AAAAaCAMAAABGmBj2AAAAjVBMVEUAAABkZFRmZlJhYU+rq5ulpZZoaFBfX01kZFFlZVKrq5tgYFBmZlKkpJuvr5+srJxlZVCrq5xmZlNfX06np5iqqp2iopRiYlCQkH2rq5tkZFKEhHygoJKRkX2QkHurq52IiHSKinaMjHiSknyqqpqSkn2ZmXeRkX1lZVKRkX2rq5xfX02goJKHh3SQkHwkgriDAAAAKHRSTlMAQIDHgMcg7qBgQBCPHxBQMKBQ27Ng27ORj3AF7oiocPHbyEEwMA92SIWyjwAAAslJREFUSMell+t2qjAQhYcgCXdQsbba2+ntFGj7/o93wgzJYILHhd0/NBNZ68tkZ4YIx9vvdkbft0cg1QFJwkS1O5VthDjUNAyM+IGyWq1WVQk2TrUKPbhtz+gBSOHnqD5mnMKZ2MaixwklMoDg00oAqlh3qBSMcGKlB5y7mz/jjfoaSJJiBaNi+0gyg6++OgdfdAavQeCKpj0885IxlhRueIHg498MnfHrZXgVhrTdG842xFx5haHI1Wdu8NtwEP5+M6CiXZruCuN8twRPWeSYDlsv2Pzhlz3uijT4AIyqgbSDqVZX4DPEs/W1NaOe7IuPb0YQq9RufC3FA+Kt9SHG0uX5YadZpZf83VX4g7U+BzLf7Et+Bp9qTuMl3yzGJ3zUFW52bs3v0Yx5/BNyqiZap0Da6ZkqWoIPhYg5RUkL2Vjzc6y5ZIqPxSBJO11Rod0B6r7r7sHDv7+Yuvh4PFP3OVe9sqvQyqjn7TPGkwKABo0mVSb5nYcvntvvVxy9Prfz+H3AVb8fPUimRFV7eM1h3djkXfzHHz34+QtwfPhpHbybvhrPYMyVX1P+vZzHN2WBzaegNvDk4o8vLerxXS/Dx8dBsNma6pbmoB0mbTjbIy/0vI8Yi7sfYR06+Mf2RLNtR+Gek/UsCaMEhrVz8pETYf0jMMVPB//QXsbTaw2/rbjt2658Ad8MRyCKoqHr3UcREOwS3qY3Ws+KLT7D0MWvT/DkBWsBHrMj6713MHcIF78a0v013mQ9Wp/xe15CTRH0c5ufDpRyvGGkV+MztDwk67eAkmS+6IXEQtA6uPiyo0q7o2UYLWq604OmbP3TOAaB1wtFheDddtbYb/FzDb/Db23G3P8U4vkguviiM/oqHPzCq+Y2O3nxmUBMHvDxsDP4Chz8oot2mHDCcGJ+suVrto+HlG57b+Dj//c3Y4n4P8WcijQtYU7/ANVG7hKeMxekAAAAAElFTkSuQmCC",
+    "disabilities": "I'm visually impaired."
+}
+----
+Errors::
+401: Invalid session +
+*404: User not found* +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "not_found"
+}
+----
+
+=== PUT `/users/{id}/disabilities`
+Description::
+Set information about the user's disabilities
+Request params:: none
+Query params:: none
+Request body::
+* disabilities [string]
+Example response::
+200:
+[source,json]
+----
+{
+    "status": "changed"
+}
+----
+Errors::
+401: Invalid session +
+*403: Trying to modify another user* +
+404: User not found +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "forbidden"
+}
+----
+
+=== PUT `/users/{id}/profile-image`
+Description::
+Set the profile-image of the current user
+Request params:: none
+Query params:: none
+Request body::
+* profile_image [string]
+Example response::
+200:
+[source,json]
+----
+{
+    "status": "changed"
+}
+----
+Errors::
+401: Invalid session +
+*403: Trying to modify another user* +
+404: User not found +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "forbidden"
+}
+----
+
+=== PUT `/users/{id}/firstname`
+Description::
+Set the firstname of the current user
+Request params:: none
+Query params:: none
+Request body::
+* first_name [string]
+Example response::
+200:
+[source,json]
+----
+{
+    "status": "changed"
+}
+----
+Errors::
+401: Invalid session +
+*403: Trying to modify another user* +
+404: User not found +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "forbidden"
+}
+----
+
+=== PUT `/users/{id}/username`
+Description::
+Set the username of the current user
+Request params:: none
+Query params:: none
+Request body::
+* username [string]
+Example response::
+200:
+[source,json]
+----
+{
+    "status": "changed"
+}
+----
+Errors::
+401: Invalid session +
+*403: Trying to modify another user* +
+404: User not found +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "forbidden"
+}
+----
+
+
+== Journey
+NOTE: The fields starting with `approximate` are calculated server-side to enhance privacy of the user providing the journey request. They differ from the actual values randomly.
+
+IMPORTANT: All `/journeys` routes require authentication.
+
+=== GET `/journeys`
+Description::
+Get a list of all journeys (with information depending on access permission)
+Request params:: none
+Query params::
+* openForRequests (optional) [bool]
+* offer (Filter for offers; optional) [bool]
+* request (Filter for requests; optional) [bool]
+* non-expired (Filter to display non-expired requests only; optional) [bool]
+Request body:: none
+Example response::
+200: (Note, that `start_*`, `end_*` as well as `*_ids` may be null depending on the users state. the user with id `user_id` can see everything, while accepted/denied/pending users only see the state where they are in [and only their ID]. Accepted users can see the real address information as well.)
+[source,json]
+----
+{
+  "journeys": [
+    {
+      "id": 1,
+      "user_id": 1,
+      "request": true,
+      "offer": false,
+      "start_lat_long": "52.512680;13.457280",
+      "end_lat_long": "52.480240;13.327950",
+      "approximate_start_lat_long": "52.515680;13.458280",
+      "approximate_end_lat_long": "52.483240;13.328950",
+      "start_address": "Simon-Dach-Straße 1, 10245 Berlin",
+      "end_address": "Bundesplatz 1, 10715 Berlin",
+      "approximate_start_address": "Frankfurter Allee 19, 10247 Berlin",
+      "approximate_end_address": "Am Volkspark 35-37, 10715 Berlin",
+      "time": 1611674722517,
+      "time_is_departure": true,
+      "time_is_arrival": false,
+      "open_for_requests": true,
+      "pending_user_ids": [
+        2,
+        3
+      ],
+      "accepted_user_ids": [
+        4
+      ],
+      "declined_user_ids": [
+        5
+      ],
+      "cancelled_by_host": true,
+      "cancelled_by_host_reason": "I'm sorry, but my car is broken.",
+      "cancelled_by_attendee_ids": [
+        6
+      ]
+    }
+  ]
+}
+----
+
+Errors::::
+401: Invalid session +
+*500: Internal server error*
+[source,json]
+----
+{
+    "error": "internal_error"
+}
+----
+
+=== POST `/journeys`
+Description::
+Create a journey
+Request params:: none
+Query params:: none
+Request body::
+* request (Is this journey a request? Must be the negated value of `offer`) [bool]
+* offer (Is this journey a offer? Must be the negated value of `request`) [bool]
+* start_lat_long (start latitude and longitude separated by `;`, must not be end_lat_long or resolve to end address) [string]
+* end_lat_long (start latitude and longitude separated by `;`, must not be start_lat_long or resolve to start address) [string]
+* time (in milliseconds) [int]
+* time_is_departure (Is the given time the departure? Must be the negated value of `time_is_arrival`) [bool]
+* time_is_arrival (Is the given time the departure? Must be the negated value of `time_is_departure`) [bool]
+* note (optional; Some information about this specific journey) [string]
+Example response::
+200:
+[source,json]
+----
+{
+  "id": 1,
+  "user_id": 1,
+  "request": true,
+  "offer": false,
+  "start_lat_long": "52.512680;13.457280",
+  "end_lat_long": "52.480240;13.327950",
+  "approximate_start_lat_long": "52.515680;13.458280",
+  "approximate_end_lat_long": "52.483240;13.328950",
+  "start_address": "Simon-Dach-Straße 1, 10245 Berlin",
+  "end_address": "Bundesplatz 1, 10715 Berlin",
+  "approximate_start_address": "Frankfurter Allee 19, 10247 Berlin",
+  "approximate_end_address": "Am Volkspark 35-37, 10715 Berlin",
+  "time": 1611674722517,
+  "time_is_departure": true,
+  "time_is_arrival": false,
+  "open_for_requests": true,
+  "cancelled_by_host": false,
+  "note": "I prefer public transport"
+}
+----
+Errors::::
+*400: Bad/Malformed request* +
+401: Invalid session +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "invalid_request"
+}
+----
+
+=== GET `/journeys/{id}`
+Description::
+Get information to a specific journey
+Request params::
+* id (of the journey) [int]
+Query params:: none
+Request body:: none
+Example response::
+200: (Note, that `start_*`, `end_*` as well as `*_ids` may be null depending on the users state. the user with id `user_id` can see everything, while accepted/denied/pending users only see the state where they are in [and only their ID]. Accepted users can see the real address information as well.)
+[source,json]
+----
+{
+  "id": 1,
+  "user_id": 1,
+  "request": true,
+  "offer": false,
+  "start_lat_long": "52.512680;13.457280",
+  "end_lat_long": "52.480240;13.327950",
+  "approximate_start_lat_long": "52.515680;13.458280",
+  "approximate_end_lat_long": "52.483240;13.328950",
+  "start_address": "Simon-Dach-Straße 1, 10245 Berlin",
+  "end_address": "Bundesplatz 1, 10715 Berlin",
+  "approximate_start_address": "Frankfurter Allee 19, 10247 Berlin",
+  "approximate_end_address": "Am Volkspark 35-37, 10715 Berlin",
+  "time": 1611674722517,
+  "time_is_departure": true,
+  "time_is_arrival": false,
+  "open_for_requests": true,
+  "pending_user_ids": [
+    2,
+    3
+  ],
+  "accepted_user_ids": [
+    4
+  ],
+  "declined_user_ids": [
+    5
+  ],
+  "cancelled_by_host": true,
+  "cancelled_by_host_reason": "I'm sorry, but my car is broken.",
+  "cancelled_by_attendee_ids": [
+    6
+  ],
+  "note": "I prefer public transport"
+}
+----
+
+Errors::::
+400: Bad/Malformed request +
+401: Invalid session +
+*404: Not found* +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "not_found"
+}
+----
+
+=== DELETE `/journeys/{id}`
+Description::
+Delete a specific journey
+Request params::
+* id (of the journey) [int]
+Query params:: none
+Request body:: none
+Example response::
+200:
+[source,json]
+----
+{
+  "status": "deleted"
+}
+----
+
+Errors::::
+400: Bad/Malformed request +
+401: Invalid session +
+403: Forbidden / permission denied +
+404: Not found +
+*409: Deletion not available due to requests* +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "deletion_not_available_due_to_requests"
+}
+----
+
+=== PUT `/journeys/{id}/open`
+Description::
+Change the state, whether the journey is still open for requests or not
+Request params::
+* id (of the journey) [int]
+Query params:: none
+Request body::
+* value [bool]
+Example response::
+200:
+[source,json]
+----
+{
+  "status": "changed"
+}
+----
+
+Errors::::
+400: Bad/Malformed request +
+*401: Invalid session* +
+403: Forbidden / permission denied +
+404: Not found +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "missing_authentication"
+}
+----
+
+=== PUT `/journeys/{id}/note`
+Description::
+Change the note of the journey
+Request params::
+* id (of the journey) [int]
+Query params:: none
+Request body::
+* note [string]
+Example response::
+200:
+[source,json]
+----
+{
+  "status": "changed"
+}
+----
+
+Errors::::
+400: Bad/Malformed request +
+*401: Invalid session* +
+403: Forbidden / permission denied +
+404: Not found +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "missing_authentication"
+}
+----
+
+=== POST `/journeys/{id}/join`
+Description::
+Request to join the journey
+Request params::
+* id (of the journey) [int]
+Query params:: none
+Request body:: none
+Example response::
+200:
+[source,json]
+----
+{
+  "status": "requested"
+}
+----
+
+Errors::::
+401: Invalid session +
+404: Not found +
+409: Request already declined _or_ journey has been cancelled _or_ requests are not open _or_ journey already took place _or_ request already accepted +
+*422: Requesting own journey* +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "requesting_own_journey"
+}
+----
+
+=== DELETE `/journeys/{id}/join`
+Description::
+Cancel the request to join the journey
+Request params::
+* id (of the journey) [int]
+Query params:: none
+Request body:: none
+Example response::
+200:
+[source,json]
+----
+{
+  "status": "cancelled"
+}
+----
+
+Errors::::
+401: Invalid session +
+404: Not found +
+*409: Not requested to join this journey* +
+422: Requesting own journey +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "not_requested_to_join"
+}
+----
+
+=== POST `/journeys/{id}/accept/{userId}`
+Description::
+Accept the request of a user to join the journey
+Request params::
+* id (of the journey) [int]
+* userId (of the requesting user) [int]
+Query params:: none
+Request body:: none
+Example response::
+200:
+[source,json]
+----
+{
+  "status": "accepted"
+}
+----
+
+Errors::::
+401: Invalid session +
+403: Forbidden / permission denied +
+404: Not found +
+*409: Request already declined* _or_ journey has been cancelled _or_ user not requested to join _or_ journey already took place +
+422: Requesting own journey +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "request_already_accepted"
+}
+----
+
+=== DELETE `/journeys/{id}/accept/{userId}`
+Description::
+Remove the permission of a user to join the journey
+Request params::
+* id (of the journey) [int]
+* userId (of the requesting user) [int]
+Query params:: none
+Request body:: none
+Example response::
+200:
+[source,json]
+----
+{
+  "status": "cancelled"
+}
+----
+
+Errors::::
+401: Invalid session +
+403: Forbidden / permission denied +
+404: Not found +
+409: *User has not been accepted* +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "user_has_not_been_accepted"
+}
+----
+
+=== POST `/journeys/{id}/decline/{userId}`
+Description::
+Decline the request of a user to join the journey
+Request params::
+* id (of the journey) [int]
+* userId (of the requesting user) [int]
+Query params:: none
+Request body:: none
+Example response::
+200:
+[source,json]
+----
+{
+  "status": "accepted"
+}
+----
+
+Errors::::
+401: Invalid session +
+403: Forbidden / permission denied +
+404: Not found +
+409: Request already accepted _or_ journey has been cancelled _or_ *user not requested to join* _or_ journey already took place +
+422: Requesting own journey +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "user_not_requested_to_join"
+}
+----
+
+=== DELETE `/journeys/{id}/decline/{userId}`
+Description::
+Reverse the rejection of a user to join the journey
+Request params::
+* id (of the journey) [int]
+* userId (of the requesting user) [int]
+Query params:: none
+Request body:: none
+Example response::
+200:
+[source,json]
+----
+{
+  "status": "reversed"
+}
+----
+
+Errors::::
+401: Invalid session +
+403: Forbidden / permission denied +
+404: Not found +
+409: User has not been declined _or_ journey has been cancelled _or_ *journey already took place* +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "journey_already_took_place"
+}
+----
+
+=== POST `/journeys/{id}/cancel`
+Description::
+Cancel attendance at the journey (when an accepted user calls this resource) _or_ cancel the journey (when the providing user of the journey calls this resource)
+Request params::
+* id (of the journey) [int]
+Query params:: none
+Request body::
+* reason (why the journey has been cancelled; must only be set when the providing user calls this resource) [string]
+Example response::
+200:
+[source,json]
+----
+{
+  "status": "cancelled"
+}
+----
+
+Errors::::
+400: Bad/Malformed request +
+401: Invalid session +
+404: Not found +
+409: *User has not been accepted* _or_ journey has (already) been cancelled +
+422: Requesting own journey +
+500: Internal server error
+[source,json]
+----
+{
+    "error": "user_has_not_been_accepted"
+}
+----
+
+== Websocket
+IMPORTANT: The websocket is responsible for instant communication via the chat module. All messages are send as a TextMessage (id: 1), whilst closing the socket is supported by using the CloseMessage (id: 8). Ping (id: 9) and Pong (id: 10) are supported as well. +
+This websocket does time out 24 hours after the last packet has been sent. Ensure to send a PingMessage constantly.
+
+NOTE: The communication is based on a Packet-based design choice. Nearly all requests and responses are presented as a Packet, while simple responses such as "ok" or errors are simple JSON strings. All packets are JSON strings and dividing into two parts (type and information/details, ...).
+
+IMPORTANT: Authentication does not work via headers. The API key must be sent as query paramenter `token`. +
+Example URL: `wss://api.traveltogether.eu/v1/websocket?token=e9cd9ca4-df64-4e3c-8667-a33e2fdaacb9`
+
+
+
+=== ChatMessagePacket
+Description::
+Chat message
+Request/Response body::
+* type = "ChatMessagePacket"
+* chat_message = {id int, chat_id int, sender_id int, receiver_id int, message string, time int} +
+Sent as request, only chat_id/receiver_id (for group communication: receiver_id is not possible), message are required. Other fields will be set in the response.
+Example response::
+[source,json]
+----
+{
+  "type": "ChatMessagePacket",
+  "chat_message": {
+    "id": 5,
+    "chat_id": 2,
+    "sender_id": 1,
+    "message": "Hey, I'll be there in 5 minutes.",
+    "time": 1611674722517
+  }
+}
+----
+
+Errors::::
+Invalid Chat Packet +
+Invalid session +
+*Room does not exist* +
+Internal server error
+[source,json]
+----
+{
+    "error": "room_does_not_exist"
+}
+----
+
+=== ChatRoomAddUserPacket
+Description::
+Add user to a chat room/group
+Request/Response body::
+* type = "ChatRoomAddUserPacket"
+* information = {user_id int, chat_id int} +
+user_id describes the user to add in the group chat_id.
+Example response::
+[source,json]
+----
+{
+  "type": "ChatRoomAddUserPacket",
+  "information": {
+    "chat_id": 2,
+    "user_id": 3
+  }
+}
+----
+
+Errors::::
+*No permission* +
+User not found +
+Room does not exist or user is already in room +
+Room is not a group +
+Internal server error
+[source,json]
+----
+{
+    "error": "no_permission"
+}
+----
+
+=== ChatRoomLeaveUserPacket
+Description::
+Leave a chat room/group
+Request/Response body::
+* type = "ChatRoomLeaveUserPacket"
+* information = {chat_id int} +
+Example response::
+[source,json]
+----
+{
+  "type": "ChatRoomLeaveUserPacket",
+  "information": {
+    "chat_id": 2
+  }
+}
+----
+
+Errors::::
+*Not in room* +
+Room does not exist +
+Room is not a group +
+Internal server error
+[source,json]
+----
+{
+    "error": "not_in_room"
+}
+----
+
+=== ChatRoomCreatePacket
+Description::
+Create a chat room/group
+Request/Response body::
+* type = "ChatRoomCreatePacket"
+* information = {id int, participants int[], group bool} +
+participants is an array of user ids, which should be added to the room. Group defines if the room is a group or not.
+Example response::
+[source,json]
+----
+{
+  "type": "ChatRoomCreatePacket",
+  "information": {
+    "id": 2,
+    "participants": [
+      3,
+      4,
+      1
+    ],
+    "group": true
+  }
+}
+----
+
+Errors::::
+*Private chat can only contain two users* +
+Private chat already exists +
+User not found +
+Internal server error
+[source,json]
+----
+{
+    "error": "private_chat_can_only_contain_2_users"
+}
+----
+
+=== ChatUnreadMessagesPacket
+Description::
+Create a chat room/group
+Request/Response body::
+* type = "ChatUnreadMessagesPacket"
+* chat_messages = [{id int, chat_id int, sender_id int, message string, time int}] +
+chat_messages must not be set in a request.
+Example response::
+
+[source,json]
+----
+{
+  "type": "ChatUnreadMessagesPacket",
+  "chat_messages": [
+      {
+        "id": 1,
+        "chat_id": 1,
+        "sender_id": 2,
+        "message": "Hello there.",
+        "time": 1611674722517
+      },
+      {
+        "id": 4,
+        "chat_id": 5,
+        "sender_id": 4,
+        "message": "Hi.",
+        "time": 1611674722517
+      }
+    ]
+}
+----
+
+Errors::::
+*Internal server error*
+[source,json]
+----
+{
+    "error": "internal_server_error"
+}
+----
+
+=== ChatRoomMessagesPacket
+Description::
+Get messages from a specific chat room/group
+Request/Response body::
+* type = "ChatRoomMessagesPacket"
+* chat_id int
+* chat_messages = [{id int, chat_id int, sender_id int, message string, time int}] +
+chat_messages must not be set in a request.
+Example response::
+
+[source,json]
+----
+{
+  "type": "ChatRoomMessagesPacket",
+  "chat_id": 1,
+  "chat_messages": [
+      {
+        "id": 1,
+        "chat_id": 1,
+        "sender_id": 2,
+        "message": "Hello there.",
+        "time": 1611674722517
+      },
+      {
+        "id": 2,
+        "chat_id": 1,
+        "sender_id": 4,
+        "message": "Hi.",
+        "time": 1611674722517
+      }
+    ]
+}
+----
+
+Errors::::
+*Internal server error*
+[source,json]
+----
+{
+    "error": "internal_server_error"
+}
+----
+
+=== ChatRoomsPacket
+Description::
+Get all chat rooms which the user has joined
+Request/Response body::
+* type = "ChatRoomsPacket"
+* chat_rooms = [{id int, participants int[], group bool}] +
+chat_rooms must not be set in a request.
+Example response::
+
+[source,json]
+----
+{
+  "type": "ChatRoomsPacket",
+  "chat_rooms": [
+     {
+        "id": 2,
+        "participants": [
+            3,
+            4,
+            1
+        ],
+        "group": true
+      },
+      {
+        "id": 3,
+        "participants": [
+            5,
+            7,
+            1
+        ],
+        "group": true
+      }
+    ]
+}
+----
+
+Errors::::
+*Internal server error*
+[source,json]
+----
+{
+    "error": "internal_server_error"
+}
+----
