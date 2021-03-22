@@ -3,4 +3,6 @@ This is the backend application for travel together, a project for the module "S
 
 To build this application, use `go build cmd/traveltogether/main.go`.
 
+For execution, you need a PostgreSQL database. (Execute `traveltogether -h` for more information about parameters for configuring the database access of travel together.)
+
 This project is written in Golang 1.15.
